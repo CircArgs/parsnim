@@ -16,7 +16,7 @@ type
 
   Stream*[T] = seq[T]
 
-  State*[T] = ref object
+  State*[T] = object
     index*: int
     stream*: Stream[T]
 
@@ -34,9 +34,10 @@ proc failure*[T](start_index, end_index: int, description: string): Result[T] =
   Result[T](kind: ResultType.Failure, start_index: start_index,
       end_index: end_index, description: description)
 
-proc failure*[T](start_index, end_index: int, expected: seq[T], description: string): Result[T] =
-  Result[T](kind: ResultType.Failure, expected: expected, start_index: start_index,
-      end_index: end_index, description: description)
+proc failure*[T](start_index, end_index: int, expected: seq[T],
+    description: string): Result[T] =
+  Result[T](kind: ResultType.Failure, expected: expected,
+      start_index: start_index, end_index: end_index, description: description)
 
 proc combine*(self, other: Result): Result =
   var (left, right) = (self, other)
@@ -88,10 +89,9 @@ proc `$`*(state: State): string =
 
 proc parse_partial*[T, R](parser: Parser[T, R], state: var State[T]): Result[R] =
   result = parser.fn(state)
-
   if not result:
-    let expected = if result.expected.len>0: fmt" {result.expected} " else: ""
-    raise newException(ParseError, fmt"failed to parse with error: Expected {expected} {result.description} @ {result.start_index}:{result.end_index}")
+    let expected = if result.expected.len > 0: fmt" {result.expected}" else: ""
+    raise newException(ParseError, fmt"failed to parse with error: Expected{expected} `{result.description}` got {state.stream[result.start_index..<result.end_index]} @ {result.start_index}:{result.end_index}")
 
 proc parse_partial*[T, R](parser: Parser[T, R], stream: Stream[T]): Result[R] =
   var state = State[T](stream: stream)
@@ -114,9 +114,11 @@ proc parse*[T, R](parser: Parser[T, R], stream: string): seq[R] =
 proc skip*[T, R](parser, other: Parser[T, R]): Parser[T, R] =
   proc skip_parser(state: var State[T]): Result[R] =
     let first = parser.fn(state)
+    if not first:
+      return first
     let to_skip = other.fn(state)
     if not to_skip:
-      return to_skip.combine(first)
+      return to_skip
     first
   Parser[T, R](fn: skip_parser, description: fmt"{parser.description} skip {other.description}")
 
@@ -125,7 +127,8 @@ proc then*[T, R](parser, other: Parser[T, R]): Parser[T, R] =
     result = parser.fn(state).combine(other.fn(state))
   Parser[T, R](fn: then_parser, description: fmt"{parser.description} then {other.description}")
 
-proc test_proc*[T](test_proc_var: proc(x: T): bool, description: string, expected: T): Parser[T, T] =
+proc test_proc*[T](test_proc_var: proc(x: T): bool, description: string,
+    expected: T): Parser[T, T] =
   proc test_proc_parser(state: var State[T]): Result[T] =
     if state.index < state.stream.len:
       if test_proc_var(state.stream[state.index]):
@@ -158,8 +161,8 @@ proc test_seq*[T](test_seq: seq[T], description: string): Parser[T, T] =
 
   Parser[T, T](fn: test_seq_parser, description: description)
 
-proc test_item*[T](test: T, description: string): auto = test_proc(proc(
-    x: T): auto = test == x, description, test)
+proc test_item*[T](test: T, description: string): auto =
+  test_proc(proc(x: T): auto = test == x, description, test)
 
 proc test_char*(test: char): auto = test_item(test, fmt"char {test}")
 
@@ -239,35 +242,32 @@ proc `and`*[T, R](parser, other: Parser[T, R]): Parser[T, R] =
     result = parser.fn(state)
     if not result:
       return
-    state.index=start_index
+    state.index = start_index
     let first_value = result.value
     let end_index = result.end_index
     result = other.fn(state)
     if not result:
       return
-    result = success[R](start_index, max(end_index, result.end_index), concat(first_value, result.value), description)
+    result = success[R](start_index, max(end_index, result.end_index), concat(
+        first_value, result.value), description)
   Parser[T, R](fn: and_parser, description: description)
 
 proc `not`*[T, R](parser: Parser[T, R]): Parser[T, R] =
-  let description = fmt"not {parser.description}" 
+  let description = fmt"not {parser.description}"
   proc not_parser(state: var State[T]): Result[R] =
     result = parser.fn(state)
-    echo result
     if result.kind == ResultType.Match:
-      result.kind = ResultType.Failure 
+      result.kind = ResultType.Failure
+      swap(result.value, result.expected)
     else:
       result.kind = ResultType.Match
+      result.value = state.stream[result.start_index..<result.end_index]
+      result.expected = @[]
     result.description = fmt"not {result.description}"
-    let temp = concat(result.expected, result.value)
-    result.value = concat(result.value, result.expected)
-    result.expected = temp
-    echo result
+    state.index = result.end_index
   Parser[T, R](fn: not_parser, description: description)
 
-# let p = (not test_char('c')).until(test_char('p'))
-# echo p.parse("ccccp".to_seq)
-let p = not test_char('c')
-echo p.parse("p")
-
-# TODO generate template
-# iterator wrapper in proc with final return
+let p = (not test_char('c')).until(test_char('p'))
+echo p.parse("ccccp")
+# let p = test_char('c')
+# echo p.parse("p")
