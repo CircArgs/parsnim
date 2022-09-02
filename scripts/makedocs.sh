@@ -1,0 +1,1 @@
+nim doc --project --index:on --outdir:docs --git.url:https://github.com/CircArgs/parsnim src/parsnim.nim

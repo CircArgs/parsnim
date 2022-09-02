@@ -1,0 +1,39 @@
+ParseError	parsnim.html#ParseError	parsnim: ParseError	
+Match	parsnim.html#Match	ResultType.Match	
+Failure	parsnim.html#Failure	ResultType.Failure	
+ResultType	parsnim.html#ResultType	parsnim: ResultType	
+Result	parsnim.html#Result	parsnim: Result	
+Stream	parsnim.html#Stream	parsnim: Stream	
+State	parsnim.html#State	parsnim: State	
+ParseFn	parsnim.html#ParseFn	parsnim: ParseFn	
+Parser	parsnim.html#Parser	parsnim: Parser	
+success	parsnim.html#success,int,int,Stream[T],string	parsnim: success[T](start_index, end_index: int; value: Stream[T]; description: string): Result[\n    T]	
+failure	parsnim.html#failure,int,int,string	parsnim: failure[T](start_index, end_index: int; description: string): Result[T]	
+failure	parsnim.html#failure,int,int,Stream[T],string	parsnim: failure[T](start_index, end_index: int; expected: Stream[T]; description: string): Result[\n    T]	
+to_bool	parsnim.html#to_bool.c,Result	parsnim: to_bool(res: Result): bool	
+describe	parsnim.html#describe,Parser,string	parsnim: describe(parser: var Parser; desc: string): Parser	
+map	parsnim.html#map,Parser[T,R],proc(seq[R])	parsnim: map[T, R, NR](parser: Parser[T, R]; map_fn: proc (x: seq[R]): seq[NR]): Parser[\n    T, NR]	
+tag	parsnim.html#tag,Parser[T,R],string	parsnim: tag[T, R](parser: Parser[T, R]; tag: string): Parser[T, R]	
+`$`	parsnim.html#$,Parser	parsnim: `$`(parser: Parser): string	
+`$`	parsnim.html#$,State	parsnim: `$`(state: State): string	
+parse_partial	parsnim.html#parse_partial,Parser[T,R],State[T]	parsnim: parse_partial[T, R](parser: Parser[T, R]; state: var State[T]): Result[R]	
+parse_partial	parsnim.html#parse_partial,Parser[T,R],Stream[T]	parsnim: parse_partial[T, R](parser: Parser[T, R]; stream: Stream[T]): Result[R]	
+eos	parsnim.html#eos	parsnim: eos[T, R](): auto	
+parse	parsnim.html#parse,Parser[T,R],Stream[T]	parsnim: parse[T, R](parser: Parser[T, R]; stream: Stream[T]): Stream[R]	
+parse	parsnim.html#parse,Parser[T,R],string	parsnim: parse[T, R](parser: Parser[T, R]; stream: string): Stream[R]	
+skip	parsnim.html#skip,Parser[T,R],Parser[T,R]	parsnim: skip[T, R](parser, other: Parser[T, R]): Parser[T, R]	
+then	parsnim.html#then,Parser[T,R],Parser[T,R]	parsnim: then[T, R](parser, other: Parser[T, R]): Parser[T, R]	
+test_proc	parsnim.html#test_proc,proc(T),string,T	parsnim: test_proc[T](test_proc_var: proc (x: T): bool; description: string; expected: T): Parser[\n    T, T]	
+test_seq	parsnim.html#test_seq,Stream[T],string	parsnim: test_seq[T](test_seq: Stream[T]; description: string): Parser[T, T]	
+test_item	parsnim.html#test_item,T,string	parsnim: test_item[T](test: T; description: string): auto	
+test_char	parsnim.html#test_char,char	parsnim: test_char(test: char): auto	
+test_string	parsnim.html#test_string,string	parsnim: test_string(test: string): auto	
+times	parsnim.html#times,Parser[T,R],int,int	parsnim: times[T, R](parser: Parser[T, R]; min: int; max: int = -1): Parser[T, R]	
+until	parsnim.html#until,Parser[T,R],Parser[T,R]	parsnim: until[T, R](self, parser: Parser[T, R]): Parser[T, R]	
+many	parsnim.html#many,Parser	parsnim: many(parser: Parser): Parser	
+at_most	parsnim.html#at_most,Parser,int	parsnim: at_most(parser: Parser; n: int): auto	
+at_least	parsnim.html#at_least,Parser,int	parsnim: at_least(parser: Parser; n: int): auto	
+optional	parsnim.html#optional,Parser	parsnim: optional(parser: Parser): auto	
+`or`	parsnim.html#or,Parser[T,R],Parser[T,R]	parsnim: `or`[T, R](parser, other: Parser[T, R]): Parser[T, R]	
+`and`	parsnim.html#and,Parser[T,R],Parser[T,R]	parsnim: `and`[T, R](parser, other: Parser[T, R]): Parser[T, R]	
+`not`	parsnim.html#not,Parser[T,R]	parsnim: `not`[T, R](parser: Parser[T, R]): Parser[T, R]	
