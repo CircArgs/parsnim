@@ -117,15 +117,15 @@ proc skip*[T, R](parser, other: Parser[T, R]): Parser[T, R] =
   Parser[T, R](fn: skip_parser, description: fmt"{parser.description} skip {other.description}")
 
 proc then*[T, R](parser, other: Parser[T, R]): Parser[T, R] =
-  ##[ 
+  ##[
     parses `parser` then `other` and rolls them together
 
   .. code-block:: nim
-      let t = test_char('c').then(test_char('p'))
-      echo t
-      echo t.parse("cp")
-      # <Parser: char c then char p>
-      # @['c', 'p']
+    let t = test_char('c').then(test_char('p'))
+    echo t
+    echo t.parse("cp")
+    # <Parser: char c then char p>
+    # @['c', 'p']
   ]##
   let description = fmt"{parser.description} then {other.description}"
   proc then_parser(state: var State[T]): Result[R] =
@@ -153,42 +153,44 @@ proc test_proc[T](test_proc_var: proc(x: T): bool, description: string,
     result = failure[T](state.index, state.index+1, exp, description)
   Parser[T, T](fn: test_proc_parser, description: description)
 
-proc test_proc*[T](test_proc_var: proc(x: T): bool, description: string): Parser[T, T] =
-  ##[ 
+proc test_proc*[T](test_proc_var: proc(x: T): bool,
+    description: string): Parser[T, T] =
+  ##[
   tests a procedure against the next value in the stream
 
   .. code-block:: nim
-      let p = test_proc(proc(c: char): auto = parseInt($c)>2, "greater than 2")
-      echo p
-      echo p.parse("4")
-      # <Parser: greater than 2>
-      # @['4']
+    let p = test_proc(proc(c: char): auto = parseInt($c)>2, "greater than 2")
+    echo p
+    echo p.parse("4")
+    # <Parser: greater than 2>
+    # @['4']
   ]##
   test_proc[T](test_proc_var, description, none(T))
 
-proc test_proc*[T](test_proc_var: proc(x: T): bool, description: string, expected: T): Parser[T, T] =
-  ##[ 
+proc test_proc*[T](test_proc_var: proc(x: T): bool, description: string,
+    expected: T): Parser[T, T] =
+  ##[
   tests a procedure against the next value in the stream
 
   .. code-block:: nim
-      let p = test_proc(proc(c: char): auto = c== '4', "the character '4'", "'4'")
-      echo p
-      echo p.parse("4")
-      # <Parser: the character '4'>
-      # @['4']
+    let p = test_proc(proc(c: char): auto = c== '4', "the character '4'", "'4'")
+    echo p
+    echo p.parse("4")
+    # <Parser: the character '4'>
+    # @['4']
   ]##
   test_proc[T](test_proc_var, description, some(expected))
 
 proc test_seq*[T](test_seq: Stream[T], description: string): Parser[T, T] =
-  ##[ 
+  ##[
     tests if the `test_seq` is the next sequence of the state's stream
 
   .. code-block:: nim
-      let t = test_seq("abc".to_seq, "alphabet")
-      echo t
-      echo t.parse("abc")
-      # <Parser: alphabet>
-      # @['a', 'b', 'c']
+    let t = test_seq("abc".to_seq, "alphabet")
+    echo t
+    echo t.parse("abc")
+    # <Parser: alphabet>
+    # @['a', 'b', 'c']
   ]##
   proc test_seq_parser(state: var State[T]): Result[T] =
     var i = 1
@@ -220,50 +222,50 @@ proc test_char*(test: char): Parser[char, char] =
   test_item(test, fmt"char {test}")
 
 proc test_string*(test: string): auto =
-  ##[ 
+  ##[
     tests if a string is next in a stream (special case of `test_seq`)
 
   .. code-block:: nim
-      let t = test_string("abc")
-      echo t
-      echo t.parse("abc")
-      # <Parser: string abc>
-      # @["abc"]
+    let t = test_string("abc")
+    echo t
+    echo t.parse("abc")
+    # <Parser: string abc>
+    # @["abc"]
   ]##
   test_seq(test.to_seq,
     fmt"string {test}").map(proc(x: seq[char]): auto = @[x.map_it($it).join])
 
 proc test_regex*(pattern: Regex, description: string): Parser[char, string] =
-  ##[ 
+  ##[
   tests if a regex pattern is next in a stream
 
   .. code-block:: nim
-      let r = test_regex(re"[a-zA-Z_][a-zA-Z0-9_]*", "identifier")
-      echo r
-      echo r.parse("_hello1984")
-      # <Parser: regex identifier>
-      # @["_hello1984"]
+    let r = test_regex(re"[a-zA-Z_][a-zA-Z0-9_]*", "identifier")
+    echo r
+    echo r.parse("_hello1984")
+    # <Parser: regex identifier>
+    # @["_hello1984"]
   ]##
   proc regex_parser(state: var State[char]): Result[string] =
     let match = cast[string](state.stream[
         state.index..<state.stream.len]).findBounds(pattern)
     if match[0] > -1:
-      state.index=match[1]+1
+      state.index = match[1]+1
       return success(match[0], match[1], @[state.stream[match[0]..match[
           1]].map_it($it).join], description)
     failure[string](state.index, -1, description)
   Parser[char, string](fn: regex_parser, description: fmt"regex {description}")
 
 proc times*[T, R](parser: Parser[T, R], min: int, max: int = -1): Parser[T, R] =
-  ##[ 
+  ##[
   looks for `parser` to repeat >=min and <=max times
 
   .. code-block:: nim
-      let t = (not test_char('c')).times(3)
-      echo t
-      echo t.parse("abd")
-      # <Parser: not char c 3 times>
-      # @['a', 'b', 'd']
+    let t = (not test_char('c')).times(3)
+    echo t
+    echo t.parse("abd")
+    # <Parser: not char c 3 times>
+    # @['a', 'b', 'd']
   ]##
 
   let max_count = if max == -1: min else: max
@@ -293,15 +295,15 @@ proc times*[T, R](parser: Parser[T, R], min: int, max: int = -1): Parser[T, R] =
   return Parser[T, R](fn: times_parser, description: description)
 
 proc until*[T, R](self, parser: Parser[T, R]): Parser[T, R] =
-  ##[ 
+  ##[
   looks for the current parser `self` until `parser` matches
 
   .. code-block:: nim
-      let p = (test_char('c')).until(test_char('p'))
-      echo p
-      echo p.parse("ccccp")
-      # <Parser: char c until not char c>
-      # @['c', 'c', 'c', 'c', 'p']
+    let p = (test_char('c')).until(test_char('p'))
+    echo p
+    echo p.parse("ccccp")
+    # <Parser: char c until not char c>
+    # @['c', 'c', 'c', 'c', 'p']
   ]##
   let description = fmt"{self.description} until {parser.description}"
   proc until_parser(state: var State[T]): Result[R] =
@@ -325,15 +327,15 @@ proc until*[T, R](self, parser: Parser[T, R]): Parser[T, R] =
   return Parser[T, R](fn: until_parser, description: description)
 
 proc many*(parser: Parser): Parser =
-  ##[ 
+  ##[
   finds `parser` until it doesn't
 
   .. code-block:: nim
-      let t = (test_char('c')).many().then(test_char('p'))
-      echo t
-      echo t.parse("ccccp")
-      # <Parser: char c many times then char p>
-      # @['c', 'c', 'c', 'c', 'p']
+    let t = (test_char('c')).many().then(test_char('p'))
+    echo t
+    echo t.parse("ccccp")
+    # <Parser: char c many times then char p>
+    # @['c', 'c', 'c', 'c', 'p']
   ]##
   parser.times(0, int.high)
 
@@ -350,15 +352,15 @@ proc optional*(parser: Parser): auto =
   parser.times(0, 1)
 
 proc `or`*[T, R](parser, other: Parser[T, R]): Parser[T, R] =
-  ##[ 
+  ##[
   `parser` or `other` must match
 
   .. code-block:: nim
-      let p = test_char('c') or test_char('p')
-      echo p
-      echo p.parse("p")
-      # <Parser: char c or char p>
-      # @['p']
+    let p = test_char('c') or test_char('p')
+    echo p
+    echo p.parse("p")
+    # <Parser: char c or char p>
+    # @['p']
   ]##
   let description = fmt"{parser.description} or {other.description}"
   proc or_parser(state: var State[T]): Result[R] =
@@ -374,17 +376,17 @@ proc `or`*[T, R](parser, other: Parser[T, R]): Parser[T, R] =
   Parser[T, R](fn: or_parser, description: description)
 
 proc `and`*[T, R](parser, other: Parser[T, R]): Parser[T, R] =
-  ##[ 
+  ##[
   `parser` and `other` must both match at the current position in the stream
 
   .. code-block:: nim
-      let p = test_proc(proc(c: char): auto = parseInt($c)>2, "greater than 2") and test_proc(proc(c: char): auto = parseInt($c)<= 10, "less than or equal to 10")
-      echo p
-      echo p.parse("4")
-      # <Parser: greater than 2 and less than or equal to 10>
-      # @['4']
-      p.parse("1")
-      # Error: unhandled exception: failed to parse with error: Expected `greater than 2` got @['1'] @ 0:1 [ParseError]
+    let p = test_proc(proc(c: char): auto = parseInt($c)>2, "greater than 2") and test_proc(proc(c: char): auto = parseInt($c)<= 10, "less than or equal to 10")
+    echo p
+    echo p.parse("4")
+    # <Parser: greater than 2 and less than or equal to 10>
+    # @['4']
+    p.parse("1")
+    # Error: unhandled exception: failed to parse with error: Expected `greater than 2` got @['1'] @ 0:1 [ParseError]
   ]##
   let description = fmt"{parser.description} and {other.description}"
   proc and_parser(state: var State[T]): Result[R] =
@@ -398,19 +400,20 @@ proc `and`*[T, R](parser, other: Parser[T, R]): Parser[T, R] =
     result = other.fn(state)
     if not result:
       return
-    result = success[R](start_index, max(end_index, result.end_index), result.value, description)
+    result = success[R](start_index, max(end_index, result.end_index),
+        result.value, description)
   Parser[T, R](fn: and_parser, description: description)
 
 proc `not`*[T, R](parser: Parser[T, R]): Parser[T, R] =
-  ##[ 
+  ##[
   inverts a `Result` so that a failure is instead a match and vice-versa
 
   .. code-block:: nim
-      let p = not test_char('c')
-      echo p
-      echo p.parse("p")
-      # <Parser: not char c>
-      # @['p']
+    let p = not test_char('c')
+    echo p
+    echo p.parse("p")
+    # <Parser: not char c>
+    # @['p']
   ]##
   let description = fmt"not {parser.description}"
   proc not_parser(state: var State[T]): Result[R] =
