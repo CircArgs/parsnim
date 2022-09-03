@@ -101,10 +101,6 @@ window.addEventListener('DOMContentLoaded', main);
 <li><a class="reference external"
           data-doc-search-tag="parsnim: describe(parser: var Parser; desc: string): Parser" href="parsnim.html#describe%2CParser%2Cstring">parsnim: describe(parser: var Parser; desc: string): Parser</a></li>
           </ul></dd>
-<dt><a name="eos" href="#eos"><span>eos:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="parsnim: eos[T, R](): auto" href="parsnim.html#eos">parsnim: eos[T, R](): auto</a></li>
-          </ul></dd>
 <dt><a name="Failure" href="#Failure"><span>Failure:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="ResultType.Failure" href="parsnim.html#Failure">ResultType.Failure</a></li>
@@ -191,7 +187,7 @@ window.addEventListener('DOMContentLoaded', main);
           </ul></dd>
 <dt><a name="test_char" href="#test_char"><span>test_char:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="parsnim: test_char(test: char): auto" href="parsnim.html#test_char%2Cchar">parsnim: test_char(test: char): auto</a></li>
+          data-doc-search-tag="parsnim: test_char(test: char): Parser[char, char]" href="parsnim.html#test_char%2Cchar">parsnim: test_char(test: char): Parser[char, char]</a></li>
           </ul></dd>
 <dt><a name="test_item" href="#test_item"><span>test_item:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -199,9 +195,15 @@ window.addEventListener('DOMContentLoaded', main);
           </ul></dd>
 <dt><a name="test_proc" href="#test_proc"><span>test_proc:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
+          data-doc-search-tag="parsnim: test_proc[T](test_proc_var: proc (x: T): bool; description: string): Parser[T, T]" href="parsnim.html#test_proc%2Cproc%28T%29%2Cstring">parsnim: test_proc[T](test_proc_var: proc (x: T): bool; description: string): Parser[T, T]</a></li>
+          <li><a class="reference external"
           data-doc-search-tag="parsnim: test_proc[T](test_proc_var: proc (x: T): bool; description: string; expected: T): Parser[
     T, T]" href="parsnim.html#test_proc%2Cproc%28T%29%2Cstring%2CT">parsnim: test_proc[T](test_proc_var: proc (x: T): bool; description: string; expected: T): Parser[
     T, T]</a></li>
+          </ul></dd>
+<dt><a name="test_regex" href="#test_regex"><span>test_regex:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="parsnim: test_regex(pattern: Regex; description: string): Parser[char, string]" href="parsnim.html#test_regex%2CRegex%2Cstring">parsnim: test_regex(pattern: Regex; description: string): Parser[char, string]</a></li>
           </ul></dd>
 <dt><a name="test_seq" href="#test_seq"><span>test_seq:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -232,7 +234,7 @@ window.addEventListener('DOMContentLoaded', main);
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br/>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2022-09-02 17:19:04 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2022-09-03 02:30:58 UTC</small>
       </div>
     </div>
   </div>

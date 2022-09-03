@@ -159,11 +159,6 @@ window.addEventListener('DOMContentLoaded', main);
     title="describe(parser: var Parser; desc: string): Parser">describe(parser: var Parser; desc: string): Parser</a></li>
 
   </ul>
-  <ul class="simple nested-toc-section">eos
-      <li><a class="reference" href="#eos"
-    title="eos[T, R](): auto">eos[T, R](): auto</a></li>
-
-  </ul>
   <ul class="simple nested-toc-section">failure
       <li><a class="reference" href="#failure%2Cint%2Cint%2Cstring"
     title="failure[T](start_index, end_index: int; description: string): Result[T]">failure[T](start_index, end_index: int; description: string): Result[T]</a></li>
@@ -233,7 +228,7 @@ window.addEventListener('DOMContentLoaded', main);
   </ul>
   <ul class="simple nested-toc-section">test_char
       <li><a class="reference" href="#test_char%2Cchar"
-    title="test_char(test: char): auto">test_char(test: char): auto</a></li>
+    title="test_char(test: char): Parser[char, char]">test_char(test: char): Parser[char, char]</a></li>
 
   </ul>
   <ul class="simple nested-toc-section">test_item
@@ -242,10 +237,17 @@ window.addEventListener('DOMContentLoaded', main);
 
   </ul>
   <ul class="simple nested-toc-section">test_proc
-      <li><a class="reference" href="#test_proc%2Cproc%28T%29%2Cstring%2CT"
+      <li><a class="reference" href="#test_proc%2Cproc%28T%29%2Cstring"
+    title="test_proc[T](test_proc_var: proc (x: T): bool; description: string): Parser[T, T]">test_proc[T](test_proc_var: proc (x: T): bool; description: string): Parser[T, T]</a></li>
+  <li><a class="reference" href="#test_proc%2Cproc%28T%29%2Cstring%2CT"
     title="test_proc[T](test_proc_var: proc (x: T): bool; description: string; expected: T): Parser[
     T, T]">test_proc[T](test_proc_var: proc (x: T): bool; description: string; expected: T): Parser[
     T, T]</a></li>
+
+  </ul>
+  <ul class="simple nested-toc-section">test_regex
+      <li><a class="reference" href="#test_regex%2CRegex%2Cstring"
+    title="test_regex(pattern: Regex; description: string): Parser[char, string]">test_regex(pattern: Regex; description: string): Parser[char, string]</a></li>
 
   </ul>
   <ul class="simple nested-toc-section">test_seq
@@ -334,11 +336,11 @@ class="link-seesrc" target="_blank">Source</a>
 </pre></dt>
 <dd>
 
-central object to wrap all <tt class="docutils literal"><span class="pre"><span class="Identifier">ParseFn</span></span></tt>s in 
+central object to wrap all <tt class="docutils literal"><span class="pre"><span class="Identifier">ParseFn</span></span></tt>s in
 &nbsp;&nbsp;<a
-href="https://github.com/CircArgs/parsnim/tree/version-1-6/src/parsnim.nim#L24"
+href="https://github.com/CircArgs/parsnim/tree/version-1-6/src/parsnim.nim#L25"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/CircArgs/parsnim/edit/devel/src/parsnim.nim#L24" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/CircArgs/parsnim/edit/devel/src/parsnim.nim#L25" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -412,9 +414,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/CircArgs/parsnim/tree/version-1-6/src/parsnim.nim#L72"
+href="https://github.com/CircArgs/parsnim/tree/version-1-6/src/parsnim.nim#L73"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/CircArgs/parsnim/edit/devel/src/parsnim.nim#L72" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/CircArgs/parsnim/edit/devel/src/parsnim.nim#L73" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -424,9 +426,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/CircArgs/parsnim/tree/version-1-6/src/parsnim.nim#L75"
+href="https://github.com/CircArgs/parsnim/tree/version-1-6/src/parsnim.nim#L76"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/CircArgs/parsnim/edit/devel/src/parsnim.nim#L75" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/CircArgs/parsnim/edit/devel/src/parsnim.nim#L76" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -434,11 +436,17 @@ class="link-seesrc" target="_blank">Source</a>
 <dt><pre><span class="Keyword">proc</span> <a href="#and%2CParser%5BT%2CR%5D%2CParser%5BT%2CR%5D"><span class="Identifier">`and`</span></a><span class="Other">[</span><span class="Identifier">T</span><span class="Other">,</span> <span class="Identifier">R</span><span class="Other">]</span><span class="Other">(</span><span class="Identifier">parser</span><span class="Other">,</span> <span class="Identifier">other</span><span class="Other">:</span> <a href="parsnim.html#Parser"><span class="Identifier">Parser</span></a><span class="Other">[</span><span class="Identifier">T</span><span class="Other">,</span> <span class="Identifier">R</span><span class="Other">]</span><span class="Other">)</span><span class="Other">:</span> <a href="parsnim.html#Parser"><span class="Identifier">Parser</span></a><span class="Other">[</span><span class="Identifier">T</span><span class="Other">,</span> <span class="Identifier">R</span><span class="Other">]</span></pre></dt>
 <dd>
 
-<tt class="docutils literal"><span class="pre"><span class="Identifier">parser</span></span></tt> and <tt class="docutils literal"><span class="pre"><span class="Identifier">other</span></span></tt> must both match at the current position in the stream
+<tt class="docutils literal"><span class="pre"><span class="Identifier">parser</span></span></tt> and <tt class="docutils literal"><span class="pre"><span class="Identifier">other</span></span></tt> must both match at the current position in the stream<pre class="listing"><span class="Keyword">let</span> <span class="Identifier">p</span> <span class="Operator">=</span> <span class="Identifier">test_proc</span><span class="Punctuation">(</span><span class="Keyword">proc</span><span class="Punctuation">(</span><span class="Identifier">c</span><span class="Punctuation">:</span> <span class="Identifier">char</span><span class="Punctuation">)</span><span class="Punctuation">:</span> <span class="Identifier">auto</span> <span class="Operator">=</span> <span class="Identifier">parseInt</span><span class="Punctuation">(</span><span class="Operator">$</span><span class="Identifier">c</span><span class="Punctuation">)</span><span class="Operator">&gt;</span><span class="DecNumber">2</span><span class="Punctuation">,</span> <span class="StringLit">&quot;greater than 2&quot;</span><span class="Punctuation">)</span> <span class="Keyword">and</span> <span class="Identifier">test_proc</span><span class="Punctuation">(</span><span class="Keyword">proc</span><span class="Punctuation">(</span><span class="Identifier">c</span><span class="Punctuation">:</span> <span class="Identifier">char</span><span class="Punctuation">)</span><span class="Punctuation">:</span> <span class="Identifier">auto</span> <span class="Operator">=</span> <span class="Identifier">parseInt</span><span class="Punctuation">(</span><span class="Operator">$</span><span class="Identifier">c</span><span class="Punctuation">)</span><span class="Operator">&lt;=</span> <span class="DecNumber">10</span><span class="Punctuation">,</span> <span class="StringLit">&quot;less than or equal to 10&quot;</span><span class="Punctuation">)</span>
+<span class="Identifier">echo</span> <span class="Identifier">p</span>
+<span class="Identifier">echo</span> <span class="Identifier">p</span><span class="Operator">.</span><span class="Identifier">parse</span><span class="Punctuation">(</span><span class="StringLit">&quot;4&quot;</span><span class="Punctuation">)</span>
+<span class="Comment"># &lt;Parser: greater than 2 and less than or equal to 10&gt;</span>
+<span class="Comment"># @['4']</span>
+<span class="Identifier">p</span><span class="Operator">.</span><span class="Identifier">parse</span><span class="Punctuation">(</span><span class="StringLit">&quot;1&quot;</span><span class="Punctuation">)</span>
+<span class="Comment"># Error: unhandled exception: failed to parse with error: Expected `greater than 2` got @['1'] @ 0:1 [ParseError]</span></pre>
 &nbsp;&nbsp;<a
-href="https://github.com/CircArgs/parsnim/tree/version-1-6/src/parsnim.nim#L262"
+href="https://github.com/CircArgs/parsnim/tree/version-1-6/src/parsnim.nim#L376"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/CircArgs/parsnim/edit/devel/src/parsnim.nim#L262" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/CircArgs/parsnim/edit/devel/src/parsnim.nim#L376" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -446,11 +454,15 @@ class="link-seesrc" target="_blank">Source</a>
 <dt><pre><span class="Keyword">proc</span> <a href="#not%2CParser%5BT%2CR%5D"><span class="Identifier">`not`</span></a><span class="Other">[</span><span class="Identifier">T</span><span class="Other">,</span> <span class="Identifier">R</span><span class="Other">]</span><span class="Other">(</span><span class="Identifier">parser</span><span class="Other">:</span> <a href="parsnim.html#Parser"><span class="Identifier">Parser</span></a><span class="Other">[</span><span class="Identifier">T</span><span class="Other">,</span> <span class="Identifier">R</span><span class="Other">]</span><span class="Other">)</span><span class="Other">:</span> <a href="parsnim.html#Parser"><span class="Identifier">Parser</span></a><span class="Other">[</span><span class="Identifier">T</span><span class="Other">,</span> <span class="Identifier">R</span><span class="Other">]</span></pre></dt>
 <dd>
 
-inverts a <tt class="docutils literal"><span class="pre"><span class="Identifier">Result</span></span></tt> so that a failure is instead a match and vice-versa
+inverts a <tt class="docutils literal"><span class="pre"><span class="Identifier">Result</span></span></tt> so that a failure is instead a match and vice-versa<pre class="listing"><span class="Keyword">let</span> <span class="Identifier">p</span> <span class="Operator">=</span> <span class="Keyword">not</span> <span class="Identifier">test_char</span><span class="Punctuation">(</span><span class="CharLit">'c'</span><span class="Punctuation">)</span>
+<span class="Identifier">echo</span> <span class="Identifier">p</span>
+<span class="Identifier">echo</span> <span class="Identifier">p</span><span class="Operator">.</span><span class="Identifier">parse</span><span class="Punctuation">(</span><span class="StringLit">&quot;p&quot;</span><span class="Punctuation">)</span>
+<span class="Comment"># &lt;Parser: not char c&gt;</span>
+<span class="Comment"># @['p']</span></pre>
 &nbsp;&nbsp;<a
-href="https://github.com/CircArgs/parsnim/tree/version-1-6/src/parsnim.nim#L280"
+href="https://github.com/CircArgs/parsnim/tree/version-1-6/src/parsnim.nim#L404"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/CircArgs/parsnim/edit/devel/src/parsnim.nim#L280" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/CircArgs/parsnim/edit/devel/src/parsnim.nim#L404" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -458,11 +470,15 @@ class="link-seesrc" target="_blank">Source</a>
 <dt><pre><span class="Keyword">proc</span> <a href="#or%2CParser%5BT%2CR%5D%2CParser%5BT%2CR%5D"><span class="Identifier">`or`</span></a><span class="Other">[</span><span class="Identifier">T</span><span class="Other">,</span> <span class="Identifier">R</span><span class="Other">]</span><span class="Other">(</span><span class="Identifier">parser</span><span class="Other">,</span> <span class="Identifier">other</span><span class="Other">:</span> <a href="parsnim.html#Parser"><span class="Identifier">Parser</span></a><span class="Other">[</span><span class="Identifier">T</span><span class="Other">,</span> <span class="Identifier">R</span><span class="Other">]</span><span class="Other">)</span><span class="Other">:</span> <a href="parsnim.html#Parser"><span class="Identifier">Parser</span></a><span class="Other">[</span><span class="Identifier">T</span><span class="Other">,</span> <span class="Identifier">R</span><span class="Other">]</span></pre></dt>
 <dd>
 
-<tt class="docutils literal"><span class="pre"><span class="Identifier">parser</span></span></tt> or <tt class="docutils literal"><span class="pre"><span class="Identifier">other</span></span></tt> must match
+<tt class="docutils literal"><span class="pre"><span class="Identifier">parser</span></span></tt> or <tt class="docutils literal"><span class="pre"><span class="Identifier">other</span></span></tt> must match<pre class="listing"><span class="Keyword">let</span> <span class="Identifier">p</span> <span class="Operator">=</span> <span class="Identifier">test_char</span><span class="Punctuation">(</span><span class="CharLit">'c'</span><span class="Punctuation">)</span> <span class="Keyword">or</span> <span class="Identifier">test_char</span><span class="Punctuation">(</span><span class="CharLit">'p'</span><span class="Punctuation">)</span>
+<span class="Identifier">echo</span> <span class="Identifier">p</span>
+<span class="Identifier">echo</span> <span class="Identifier">p</span><span class="Operator">.</span><span class="Identifier">parse</span><span class="Punctuation">(</span><span class="StringLit">&quot;p&quot;</span><span class="Punctuation">)</span>
+<span class="Comment"># &lt;Parser: char c or char p&gt;</span>
+<span class="Comment"># @['p']</span></pre>
 &nbsp;&nbsp;<a
-href="https://github.com/CircArgs/parsnim/tree/version-1-6/src/parsnim.nim#L247"
+href="https://github.com/CircArgs/parsnim/tree/version-1-6/src/parsnim.nim#L352"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/CircArgs/parsnim/edit/devel/src/parsnim.nim#L247" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/CircArgs/parsnim/edit/devel/src/parsnim.nim#L352" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -472,9 +488,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 finds <tt class="docutils literal"><span class="pre"><span class="Identifier">parser</span></span></tt> at least n times
 &nbsp;&nbsp;<a
-href="https://github.com/CircArgs/parsnim/tree/version-1-6/src/parsnim.nim#L239"
+href="https://github.com/CircArgs/parsnim/tree/version-1-6/src/parsnim.nim#L344"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/CircArgs/parsnim/edit/devel/src/parsnim.nim#L239" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/CircArgs/parsnim/edit/devel/src/parsnim.nim#L344" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -484,9 +500,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 finds <tt class="docutils literal"><span class="pre"><span class="Identifier">parser</span></span></tt> up to n times
 &nbsp;&nbsp;<a
-href="https://github.com/CircArgs/parsnim/tree/version-1-6/src/parsnim.nim#L235"
+href="https://github.com/CircArgs/parsnim/tree/version-1-6/src/parsnim.nim#L340"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/CircArgs/parsnim/edit/devel/src/parsnim.nim#L235" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/CircArgs/parsnim/edit/devel/src/parsnim.nim#L340" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -496,21 +512,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 describe a parser
 &nbsp;&nbsp;<a
-href="https://github.com/CircArgs/parsnim/tree/version-1-6/src/parsnim.nim#L48"
+href="https://github.com/CircArgs/parsnim/tree/version-1-6/src/parsnim.nim#L49"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/CircArgs/parsnim/edit/devel/src/parsnim.nim#L48" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-</div>
-<div id="eos">
-<dt><pre><span class="Keyword">proc</span> <a href="#eos"><span class="Identifier">eos</span></a><span class="Other">[</span><span class="Identifier">T</span><span class="Other">,</span> <span class="Identifier">R</span><span class="Other">]</span><span class="Other">(</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">auto</span></pre></dt>
-<dd>
-
-parser spots the end of a stream
-&nbsp;&nbsp;<a
-href="https://github.com/CircArgs/parsnim/tree/version-1-6/src/parsnim.nim#L93"
-class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/CircArgs/parsnim/edit/devel/src/parsnim.nim#L93" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/CircArgs/parsnim/edit/devel/src/parsnim.nim#L49" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -520,9 +524,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 function to generate <tt class="docutils literal"><span class="pre"><span class="Identifier">Failure</span></span></tt> <tt class="docutils literal"><span class="pre"><span class="Identifier">Results</span></span></tt> without an expected value
 &nbsp;&nbsp;<a
-href="https://github.com/CircArgs/parsnim/tree/version-1-6/src/parsnim.nim#L34"
+href="https://github.com/CircArgs/parsnim/tree/version-1-6/src/parsnim.nim#L35"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/CircArgs/parsnim/edit/devel/src/parsnim.nim#L34" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/CircArgs/parsnim/edit/devel/src/parsnim.nim#L35" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -533,9 +537,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 function to generate <tt class="docutils literal"><span class="pre"><span class="Identifier">Failure</span></span></tt> <tt class="docutils literal"><span class="pre"><span class="Identifier">Results</span></span></tt> with an expected value
 &nbsp;&nbsp;<a
-href="https://github.com/CircArgs/parsnim/tree/version-1-6/src/parsnim.nim#L39"
+href="https://github.com/CircArgs/parsnim/tree/version-1-6/src/parsnim.nim#L40"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/CircArgs/parsnim/edit/devel/src/parsnim.nim#L39" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/CircArgs/parsnim/edit/devel/src/parsnim.nim#L40" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -543,11 +547,15 @@ class="link-seesrc" target="_blank">Source</a>
 <dt><pre><span class="Keyword">proc</span> <a href="#many%2CParser"><span class="Identifier">many</span></a><span class="Other">(</span><span class="Identifier">parser</span><span class="Other">:</span> <a href="parsnim.html#Parser"><span class="Identifier">Parser</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">Parser</span></pre></dt>
 <dd>
 
-finds <tt class="docutils literal"><span class="pre"><span class="Identifier">parser</span></span></tt> until it doesn't
+finds <tt class="docutils literal"><span class="pre"><span class="Identifier">parser</span></span></tt> until it doesn't<pre class="listing"><span class="Keyword">let</span> <span class="Identifier">t</span> <span class="Operator">=</span> <span class="Punctuation">(</span><span class="Identifier">test_char</span><span class="Punctuation">(</span><span class="CharLit">'c'</span><span class="Punctuation">)</span><span class="Punctuation">)</span><span class="Operator">.</span><span class="Identifier">many</span><span class="Punctuation">(</span><span class="Punctuation">)</span><span class="Operator">.</span><span class="Identifier">then</span><span class="Punctuation">(</span><span class="Identifier">test_char</span><span class="Punctuation">(</span><span class="CharLit">'p'</span><span class="Punctuation">)</span><span class="Punctuation">)</span>
+<span class="Identifier">echo</span> <span class="Identifier">t</span>
+<span class="Identifier">echo</span> <span class="Identifier">t</span><span class="Operator">.</span><span class="Identifier">parse</span><span class="Punctuation">(</span><span class="StringLit">&quot;ccccp&quot;</span><span class="Punctuation">)</span>
+<span class="Comment"># &lt;Parser: char c many times then char p&gt;</span>
+<span class="Comment"># @['c', 'c', 'c', 'c', 'p']</span></pre>
 &nbsp;&nbsp;<a
-href="https://github.com/CircArgs/parsnim/tree/version-1-6/src/parsnim.nim#L231"
+href="https://github.com/CircArgs/parsnim/tree/version-1-6/src/parsnim.nim#L327"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/CircArgs/parsnim/edit/devel/src/parsnim.nim#L231" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/CircArgs/parsnim/edit/devel/src/parsnim.nim#L327" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -558,9 +566,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 takes a parser that goes from Stream[T]-&gt;Stream[R] and transforms it to Stream[T]-&gt;Stream[NR]
 &nbsp;&nbsp;<a
-href="https://github.com/CircArgs/parsnim/tree/version-1-6/src/parsnim.nim#L53"
+href="https://github.com/CircArgs/parsnim/tree/version-1-6/src/parsnim.nim#L54"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/CircArgs/parsnim/edit/devel/src/parsnim.nim#L53" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/CircArgs/parsnim/edit/devel/src/parsnim.nim#L54" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -570,9 +578,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 tries to find <tt class="docutils literal"><span class="pre"><span class="Identifier">parser</span></span></tt> and if not continues
 &nbsp;&nbsp;<a
-href="https://github.com/CircArgs/parsnim/tree/version-1-6/src/parsnim.nim#L243"
+href="https://github.com/CircArgs/parsnim/tree/version-1-6/src/parsnim.nim#L348"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/CircArgs/parsnim/edit/devel/src/parsnim.nim#L243" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/CircArgs/parsnim/edit/devel/src/parsnim.nim#L348" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -582,9 +590,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 run a parser on a stream
 &nbsp;&nbsp;<a
-href="https://github.com/CircArgs/parsnim/tree/version-1-6/src/parsnim.nim#L98"
+href="https://github.com/CircArgs/parsnim/tree/version-1-6/src/parsnim.nim#L99"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/CircArgs/parsnim/edit/devel/src/parsnim.nim#L98" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/CircArgs/parsnim/edit/devel/src/parsnim.nim#L99" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -594,9 +602,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 run a parser on a stream that is a string
 &nbsp;&nbsp;<a
-href="https://github.com/CircArgs/parsnim/tree/version-1-6/src/parsnim.nim#L102"
+href="https://github.com/CircArgs/parsnim/tree/version-1-6/src/parsnim.nim#L103"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/CircArgs/parsnim/edit/devel/src/parsnim.nim#L102" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/CircArgs/parsnim/edit/devel/src/parsnim.nim#L103" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -606,9 +614,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/CircArgs/parsnim/tree/version-1-6/src/parsnim.nim#L78"
+href="https://github.com/CircArgs/parsnim/tree/version-1-6/src/parsnim.nim#L79"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/CircArgs/parsnim/edit/devel/src/parsnim.nim#L78" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/CircArgs/parsnim/edit/devel/src/parsnim.nim#L79" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -618,9 +626,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/CircArgs/parsnim/tree/version-1-6/src/parsnim.nim#L84"
+href="https://github.com/CircArgs/parsnim/tree/version-1-6/src/parsnim.nim#L85"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/CircArgs/parsnim/edit/devel/src/parsnim.nim#L84" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/CircArgs/parsnim/edit/devel/src/parsnim.nim#L85" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -630,9 +638,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 parses <tt class="docutils literal"><span class="pre"><span class="Identifier">parser</span></span></tt> then <tt class="docutils literal"><span class="pre"><span class="Identifier">other</span></span></tt> but ignores <tt class="docutils literal"><span class="pre"><span class="Identifier">other</span></span></tt> result
 &nbsp;&nbsp;<a
-href="https://github.com/CircArgs/parsnim/tree/version-1-6/src/parsnim.nim#L106"
+href="https://github.com/CircArgs/parsnim/tree/version-1-6/src/parsnim.nim#L107"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/CircArgs/parsnim/edit/devel/src/parsnim.nim#L106" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/CircArgs/parsnim/edit/devel/src/parsnim.nim#L107" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -643,9 +651,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 function to generate <tt class="docutils literal"><span class="pre"><span class="Identifier">Match</span></span></tt> <tt class="docutils literal"><span class="pre"><span class="Identifier">Results</span></span></tt>
 &nbsp;&nbsp;<a
-href="https://github.com/CircArgs/parsnim/tree/version-1-6/src/parsnim.nim#L28"
+href="https://github.com/CircArgs/parsnim/tree/version-1-6/src/parsnim.nim#L29"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/CircArgs/parsnim/edit/devel/src/parsnim.nim#L28" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/CircArgs/parsnim/edit/devel/src/parsnim.nim#L29" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -655,21 +663,21 @@ class="link-seesrc" target="_blank">Source</a>
 
 creates a parser that tags <tt class="docutils literal"><span class="pre"><span class="Identifier">parser</span></span></tt> results
 &nbsp;&nbsp;<a
-href="https://github.com/CircArgs/parsnim/tree/version-1-6/src/parsnim.nim#L63"
+href="https://github.com/CircArgs/parsnim/tree/version-1-6/src/parsnim.nim#L64"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/CircArgs/parsnim/edit/devel/src/parsnim.nim#L63" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/CircArgs/parsnim/edit/devel/src/parsnim.nim#L64" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
 <div id="test_char,char">
-<dt><pre><span class="Keyword">proc</span> <a href="#test_char%2Cchar"><span class="Identifier">test_char</span></a><span class="Other">(</span><span class="Identifier">test</span><span class="Other">:</span> <span class="Identifier">char</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">auto</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dt><pre><span class="Keyword">proc</span> <a href="#test_char%2Cchar"><span class="Identifier">test_char</span></a><span class="Other">(</span><span class="Identifier">test</span><span class="Other">:</span> <span class="Identifier">char</span><span class="Other">)</span><span class="Other">:</span> <a href="parsnim.html#Parser"><span class="Identifier">Parser</span></a><span class="Other">[</span><span class="Identifier">char</span><span class="Other">,</span> <span class="Identifier">char</span><span class="Other">]</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
 <dd>
 
 test if a char is next in the stream (usually a string for char test)
 &nbsp;&nbsp;<a
-href="https://github.com/CircArgs/parsnim/tree/version-1-6/src/parsnim.nim#L171"
+href="https://github.com/CircArgs/parsnim/tree/version-1-6/src/parsnim.nim#L218"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/CircArgs/parsnim/edit/devel/src/parsnim.nim#L171" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/CircArgs/parsnim/edit/devel/src/parsnim.nim#L218" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -679,9 +687,26 @@ class="link-seesrc" target="_blank">Source</a>
 
 test if a single <tt class="docutils literal"><span class="pre"><span class="Identifier">test</span></span></tt> item is next in the stream
 &nbsp;&nbsp;<a
-href="https://github.com/CircArgs/parsnim/tree/version-1-6/src/parsnim.nim#L167"
+href="https://github.com/CircArgs/parsnim/tree/version-1-6/src/parsnim.nim#L214"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/CircArgs/parsnim/edit/devel/src/parsnim.nim#L167" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/CircArgs/parsnim/edit/devel/src/parsnim.nim#L214" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="test_proc,proc(T),string">
+<dt><pre><span class="Keyword">proc</span> <a href="#test_proc%2Cproc%28T%29%2Cstring"><span class="Identifier">test_proc</span></a><span class="Other">[</span><span class="Identifier">T</span><span class="Other">]</span><span class="Other">(</span><span class="Identifier">test_proc_var</span><span class="Other">:</span> <span class="Keyword">proc</span> <span class="Other">(</span><span class="Identifier">x</span><span class="Other">:</span> <span class="Identifier">T</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">bool</span><span class="Other">;</span> <span class="Identifier">description</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">)</span><span class="Other">:</span> <a href="parsnim.html#Parser"><span class="Identifier">Parser</span></a><span class="Other">[</span>
+    <span class="Identifier">T</span><span class="Other">,</span> <span class="Identifier">T</span><span class="Other">]</span></pre></dt>
+<dd>
+
+tests a procedure against the next value in the stream<pre class="listing"><span class="Keyword">let</span> <span class="Identifier">p</span> <span class="Operator">=</span> <span class="Identifier">test_proc</span><span class="Punctuation">(</span><span class="Keyword">proc</span><span class="Punctuation">(</span><span class="Identifier">c</span><span class="Punctuation">:</span> <span class="Identifier">char</span><span class="Punctuation">)</span><span class="Punctuation">:</span> <span class="Identifier">auto</span> <span class="Operator">=</span> <span class="Identifier">parseInt</span><span class="Punctuation">(</span><span class="Operator">$</span><span class="Identifier">c</span><span class="Punctuation">)</span><span class="Operator">&gt;</span><span class="DecNumber">2</span><span class="Punctuation">,</span> <span class="StringLit">&quot;greater than 2&quot;</span><span class="Punctuation">)</span>
+<span class="Identifier">echo</span> <span class="Identifier">p</span>
+<span class="Identifier">echo</span> <span class="Identifier">p</span><span class="Operator">.</span><span class="Identifier">parse</span><span class="Punctuation">(</span><span class="StringLit">&quot;4&quot;</span><span class="Punctuation">)</span>
+<span class="Comment"># &lt;Parser: greater than 2&gt;</span>
+<span class="Comment"># @['4']</span></pre>
+&nbsp;&nbsp;<a
+href="https://github.com/CircArgs/parsnim/tree/version-1-6/src/parsnim.nim#L156"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/CircArgs/parsnim/edit/devel/src/parsnim.nim#L156" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -690,11 +715,32 @@ class="link-seesrc" target="_blank">Source</a>
                   <span class="Identifier">expected</span><span class="Other">:</span> <span class="Identifier">T</span><span class="Other">)</span><span class="Other">:</span> <a href="parsnim.html#Parser"><span class="Identifier">Parser</span></a><span class="Other">[</span><span class="Identifier">T</span><span class="Other">,</span> <span class="Identifier">T</span><span class="Other">]</span></pre></dt>
 <dd>
 
-tests a procedure against the next value in the stream
+tests a procedure against the next value in the stream<pre class="listing"><span class="Keyword">let</span> <span class="Identifier">p</span> <span class="Operator">=</span> <span class="Identifier">test_proc</span><span class="Punctuation">(</span><span class="Keyword">proc</span><span class="Punctuation">(</span><span class="Identifier">c</span><span class="Punctuation">:</span> <span class="Identifier">char</span><span class="Punctuation">)</span><span class="Punctuation">:</span> <span class="Identifier">auto</span> <span class="Operator">=</span> <span class="Identifier">c</span><span class="Operator">==</span> <span class="CharLit">'4'</span><span class="Punctuation">,</span> <span class="StringLit">&quot;the character '4'&quot;</span><span class="Punctuation">,</span> <span class="StringLit">&quot;'4'&quot;</span><span class="Punctuation">)</span>
+<span class="Identifier">echo</span> <span class="Identifier">p</span>
+<span class="Identifier">echo</span> <span class="Identifier">p</span><span class="Operator">.</span><span class="Identifier">parse</span><span class="Punctuation">(</span><span class="StringLit">&quot;4&quot;</span><span class="Punctuation">)</span>
+<span class="Comment"># &lt;Parser: the character '4'&gt;</span>
+<span class="Comment"># @['4']</span></pre>
 &nbsp;&nbsp;<a
-href="https://github.com/CircArgs/parsnim/tree/version-1-6/src/parsnim.nim#L131"
+href="https://github.com/CircArgs/parsnim/tree/version-1-6/src/parsnim.nim#L169"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/CircArgs/parsnim/edit/devel/src/parsnim.nim#L131" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/CircArgs/parsnim/edit/devel/src/parsnim.nim#L169" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="test_regex,Regex,string">
+<dt><pre><span class="Keyword">proc</span> <a href="#test_regex%2CRegex%2Cstring"><span class="Identifier">test_regex</span></a><span class="Other">(</span><span class="Identifier">pattern</span><span class="Other">:</span> <span class="Identifier">Regex</span><span class="Other">;</span> <span class="Identifier">description</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">)</span><span class="Other">:</span> <a href="parsnim.html#Parser"><span class="Identifier">Parser</span></a><span class="Other">[</span><span class="Identifier">char</span><span class="Other">,</span> <span class="Identifier">string</span><span class="Other">]</span> {.
+    <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">ValueError</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+tests if a regex pattern is next in a stream<pre class="listing"><span class="Keyword">let</span> <span class="Identifier">r</span> <span class="Operator">=</span> <span class="Identifier">test_regex</span><span class="Punctuation">(</span><span class="RawData">re&quot;[a-zA-Z_][a-zA-Z0-9_]*&quot;</span><span class="Punctuation">,</span> <span class="StringLit">&quot;identifier&quot;</span><span class="Punctuation">)</span>
+<span class="Identifier">echo</span> <span class="Identifier">r</span>
+<span class="Identifier">echo</span> <span class="Identifier">r</span><span class="Operator">.</span><span class="Identifier">parse</span><span class="Punctuation">(</span><span class="StringLit">&quot;_hello1984&quot;</span><span class="Punctuation">)</span>
+<span class="Comment"># &lt;Parser: regex identifier&gt;</span>
+<span class="Comment"># @[&quot;_hello1984&quot;]</span></pre>
+&nbsp;&nbsp;<a
+href="https://github.com/CircArgs/parsnim/tree/version-1-6/src/parsnim.nim#L236"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/CircArgs/parsnim/edit/devel/src/parsnim.nim#L236" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -702,11 +748,15 @@ class="link-seesrc" target="_blank">Source</a>
 <dt><pre><span class="Keyword">proc</span> <a href="#test_seq%2CStream%5BT%5D%2Cstring"><span class="Identifier">test_seq</span></a><span class="Other">[</span><span class="Identifier">T</span><span class="Other">]</span><span class="Other">(</span><span class="Identifier">test_seq</span><span class="Other">:</span> <a href="parsnim.html#Stream"><span class="Identifier">Stream</span></a><span class="Other">[</span><span class="Identifier">T</span><span class="Other">]</span><span class="Other">;</span> <span class="Identifier">description</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">)</span><span class="Other">:</span> <a href="parsnim.html#Parser"><span class="Identifier">Parser</span></a><span class="Other">[</span><span class="Identifier">T</span><span class="Other">,</span> <span class="Identifier">T</span><span class="Other">]</span></pre></dt>
 <dd>
 
-tests if the <tt class="docutils literal"><span class="pre"><span class="Identifier">test_seq</span></span></tt> is the next sequence of the state's stream
+tests if the <tt class="docutils literal"><span class="pre"><span class="Identifier">test_seq</span></span></tt> is the next sequence of the state's stream<pre class="listing"><span class="Keyword">let</span> <span class="Identifier">t</span> <span class="Operator">=</span> <span class="Identifier">test_seq</span><span class="Punctuation">(</span><span class="StringLit">&quot;abc&quot;</span><span class="Operator">.</span><span class="Identifier">to_seq</span><span class="Punctuation">,</span> <span class="StringLit">&quot;alphabet&quot;</span><span class="Punctuation">)</span>
+<span class="Identifier">echo</span> <span class="Identifier">t</span>
+<span class="Identifier">echo</span> <span class="Identifier">t</span><span class="Operator">.</span><span class="Identifier">parse</span><span class="Punctuation">(</span><span class="StringLit">&quot;abc&quot;</span><span class="Punctuation">)</span>
+<span class="Comment"># &lt;Parser: alphabet&gt;</span>
+<span class="Comment"># @['a', 'b', 'c']</span></pre>
 &nbsp;&nbsp;<a
-href="https://github.com/CircArgs/parsnim/tree/version-1-6/src/parsnim.nim#L144"
+href="https://github.com/CircArgs/parsnim/tree/version-1-6/src/parsnim.nim#L182"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/CircArgs/parsnim/edit/devel/src/parsnim.nim#L144" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/CircArgs/parsnim/edit/devel/src/parsnim.nim#L182" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -714,11 +764,15 @@ class="link-seesrc" target="_blank">Source</a>
 <dt><pre><span class="Keyword">proc</span> <a href="#test_string%2Cstring"><span class="Identifier">test_string</span></a><span class="Other">(</span><span class="Identifier">test</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">auto</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">ValueError</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
 <dd>
 
-tests if a string is next in a stream (special case of <tt class="docutils literal"><span class="pre"><span class="Identifier">test_seq</span></span></tt>)
+tests if a string is next in a stream (special case of <tt class="docutils literal"><span class="pre"><span class="Identifier">test_seq</span></span></tt>)<pre class="listing"><span class="Keyword">let</span> <span class="Identifier">t</span> <span class="Operator">=</span> <span class="Identifier">test_string</span><span class="Punctuation">(</span><span class="StringLit">&quot;abc&quot;</span><span class="Punctuation">)</span>
+<span class="Identifier">echo</span> <span class="Identifier">t</span>
+<span class="Identifier">echo</span> <span class="Identifier">t</span><span class="Operator">.</span><span class="Identifier">parse</span><span class="Punctuation">(</span><span class="StringLit">&quot;abc&quot;</span><span class="Punctuation">)</span>
+<span class="Comment"># &lt;Parser: string abc&gt;</span>
+<span class="Comment"># @[&quot;abc&quot;]</span></pre>
 &nbsp;&nbsp;<a
-href="https://github.com/CircArgs/parsnim/tree/version-1-6/src/parsnim.nim#L175"
+href="https://github.com/CircArgs/parsnim/tree/version-1-6/src/parsnim.nim#L222"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/CircArgs/parsnim/edit/devel/src/parsnim.nim#L175" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/CircArgs/parsnim/edit/devel/src/parsnim.nim#L222" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -726,11 +780,15 @@ class="link-seesrc" target="_blank">Source</a>
 <dt><pre><span class="Keyword">proc</span> <a href="#then%2CParser%5BT%2CR%5D%2CParser%5BT%2CR%5D"><span class="Identifier">then</span></a><span class="Other">[</span><span class="Identifier">T</span><span class="Other">,</span> <span class="Identifier">R</span><span class="Other">]</span><span class="Other">(</span><span class="Identifier">parser</span><span class="Other">,</span> <span class="Identifier">other</span><span class="Other">:</span> <a href="parsnim.html#Parser"><span class="Identifier">Parser</span></a><span class="Other">[</span><span class="Identifier">T</span><span class="Other">,</span> <span class="Identifier">R</span><span class="Other">]</span><span class="Other">)</span><span class="Other">:</span> <a href="parsnim.html#Parser"><span class="Identifier">Parser</span></a><span class="Other">[</span><span class="Identifier">T</span><span class="Other">,</span> <span class="Identifier">R</span><span class="Other">]</span></pre></dt>
 <dd>
 
-parses <tt class="docutils literal"><span class="pre"><span class="Identifier">parser</span></span></tt> then <tt class="docutils literal"><span class="pre"><span class="Identifier">other</span></span></tt> and rolls them together
+parses <tt class="docutils literal"><span class="pre"><span class="Identifier">parser</span></span></tt> then <tt class="docutils literal"><span class="pre"><span class="Identifier">other</span></span></tt> and rolls them together<pre class="listing"><span class="Keyword">let</span> <span class="Identifier">t</span> <span class="Operator">=</span> <span class="Identifier">test_char</span><span class="Punctuation">(</span><span class="CharLit">'c'</span><span class="Punctuation">)</span><span class="Operator">.</span><span class="Identifier">then</span><span class="Punctuation">(</span><span class="Identifier">test_char</span><span class="Punctuation">(</span><span class="CharLit">'p'</span><span class="Punctuation">)</span><span class="Punctuation">)</span>
+<span class="Identifier">echo</span> <span class="Identifier">t</span>
+<span class="Identifier">echo</span> <span class="Identifier">t</span><span class="Operator">.</span><span class="Identifier">parse</span><span class="Punctuation">(</span><span class="StringLit">&quot;cp&quot;</span><span class="Punctuation">)</span>
+<span class="Comment"># &lt;Parser: char c then char p&gt;</span>
+<span class="Comment"># @['c', 'p']</span></pre>
 &nbsp;&nbsp;<a
-href="https://github.com/CircArgs/parsnim/tree/version-1-6/src/parsnim.nim#L118"
+href="https://github.com/CircArgs/parsnim/tree/version-1-6/src/parsnim.nim#L119"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/CircArgs/parsnim/edit/devel/src/parsnim.nim#L118" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/CircArgs/parsnim/edit/devel/src/parsnim.nim#L119" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -738,11 +796,15 @@ class="link-seesrc" target="_blank">Source</a>
 <dt><pre><span class="Keyword">proc</span> <a href="#times%2CParser%5BT%2CR%5D%2Cint%2Cint"><span class="Identifier">times</span></a><span class="Other">[</span><span class="Identifier">T</span><span class="Other">,</span> <span class="Identifier">R</span><span class="Other">]</span><span class="Other">(</span><span class="Identifier">parser</span><span class="Other">:</span> <a href="parsnim.html#Parser"><span class="Identifier">Parser</span></a><span class="Other">[</span><span class="Identifier">T</span><span class="Other">,</span> <span class="Identifier">R</span><span class="Other">]</span><span class="Other">;</span> <span class="Identifier">min</span><span class="Other">:</span> <span class="Identifier">int</span><span class="Other">;</span> <span class="Identifier">max</span><span class="Other">:</span> <span class="Identifier">int</span> <span class="Other">=</span> <span class="DecNumber">-1</span><span class="Other">)</span><span class="Other">:</span> <a href="parsnim.html#Parser"><span class="Identifier">Parser</span></a><span class="Other">[</span><span class="Identifier">T</span><span class="Other">,</span> <span class="Identifier">R</span><span class="Other">]</span></pre></dt>
 <dd>
 
-looks for <tt class="docutils literal"><span class="pre"><span class="Identifier">parser</span></span></tt> to repeat &gt;=min and &lt;=max times
+looks for <tt class="docutils literal"><span class="pre"><span class="Identifier">parser</span></span></tt> to repeat &gt;=min and &lt;=max times<pre class="listing"><span class="Keyword">let</span> <span class="Identifier">t</span> <span class="Operator">=</span> <span class="Punctuation">(</span><span class="Keyword">not</span> <span class="Identifier">test_char</span><span class="Punctuation">(</span><span class="CharLit">'c'</span><span class="Punctuation">)</span><span class="Punctuation">)</span><span class="Operator">.</span><span class="Identifier">times</span><span class="Punctuation">(</span><span class="DecNumber">3</span><span class="Punctuation">)</span>
+<span class="Identifier">echo</span> <span class="Identifier">t</span>
+<span class="Identifier">echo</span> <span class="Identifier">t</span><span class="Operator">.</span><span class="Identifier">parse</span><span class="Punctuation">(</span><span class="StringLit">&quot;abd&quot;</span><span class="Punctuation">)</span>
+<span class="Comment"># &lt;Parser: not char c 3 times&gt;</span>
+<span class="Comment"># @['a', 'b', 'd']</span></pre>
 &nbsp;&nbsp;<a
-href="https://github.com/CircArgs/parsnim/tree/version-1-6/src/parsnim.nim#L180"
+href="https://github.com/CircArgs/parsnim/tree/version-1-6/src/parsnim.nim#L257"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/CircArgs/parsnim/edit/devel/src/parsnim.nim#L180" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/CircArgs/parsnim/edit/devel/src/parsnim.nim#L257" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -750,11 +812,15 @@ class="link-seesrc" target="_blank">Source</a>
 <dt><pre><span class="Keyword">proc</span> <a href="#until%2CParser%5BT%2CR%5D%2CParser%5BT%2CR%5D"><span class="Identifier">until</span></a><span class="Other">[</span><span class="Identifier">T</span><span class="Other">,</span> <span class="Identifier">R</span><span class="Other">]</span><span class="Other">(</span><span class="Identifier">self</span><span class="Other">,</span> <span class="Identifier">parser</span><span class="Other">:</span> <a href="parsnim.html#Parser"><span class="Identifier">Parser</span></a><span class="Other">[</span><span class="Identifier">T</span><span class="Other">,</span> <span class="Identifier">R</span><span class="Other">]</span><span class="Other">)</span><span class="Other">:</span> <a href="parsnim.html#Parser"><span class="Identifier">Parser</span></a><span class="Other">[</span><span class="Identifier">T</span><span class="Other">,</span> <span class="Identifier">R</span><span class="Other">]</span></pre></dt>
 <dd>
 
-looks for the current parser <tt class="docutils literal"><span class="pre"><span class="Identifier">self</span></span></tt> until <tt class="docutils literal"><span class="pre"><span class="Identifier">parser</span></span></tt> matches
+looks for the current parser <tt class="docutils literal"><span class="pre"><span class="Identifier">self</span></span></tt> until <tt class="docutils literal"><span class="pre"><span class="Identifier">parser</span></span></tt> matches<pre class="listing"><span class="Keyword">let</span> <span class="Identifier">p</span> <span class="Operator">=</span> <span class="Punctuation">(</span><span class="Identifier">test_char</span><span class="Punctuation">(</span><span class="CharLit">'c'</span><span class="Punctuation">)</span><span class="Punctuation">)</span><span class="Operator">.</span><span class="Identifier">until</span><span class="Punctuation">(</span><span class="Identifier">test_char</span><span class="Punctuation">(</span><span class="CharLit">'p'</span><span class="Punctuation">)</span><span class="Punctuation">)</span>
+<span class="Identifier">echo</span> <span class="Identifier">p</span>
+<span class="Identifier">echo</span> <span class="Identifier">p</span><span class="Operator">.</span><span class="Identifier">parse</span><span class="Punctuation">(</span><span class="StringLit">&quot;ccccp&quot;</span><span class="Punctuation">)</span>
+<span class="Comment"># &lt;Parser: char c until not char c&gt;</span>
+<span class="Comment"># @['c', 'c', 'c', 'c', 'p']</span></pre>
 &nbsp;&nbsp;<a
-href="https://github.com/CircArgs/parsnim/tree/version-1-6/src/parsnim.nim#L208"
+href="https://github.com/CircArgs/parsnim/tree/version-1-6/src/parsnim.nim#L295"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/CircArgs/parsnim/edit/devel/src/parsnim.nim#L208" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/CircArgs/parsnim/edit/devel/src/parsnim.nim#L295" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -769,9 +835,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 Results are truthy/falsey
 &nbsp;&nbsp;<a
-href="https://github.com/CircArgs/parsnim/tree/version-1-6/src/parsnim.nim#L45"
+href="https://github.com/CircArgs/parsnim/tree/version-1-6/src/parsnim.nim#L46"
 class="link-seesrc" target="_blank">Source</a>
-&nbsp;&nbsp;<a href="https://github.com/CircArgs/parsnim/edit/devel/src/parsnim.nim#L45" class="link-seesrc" target="_blank" >Edit</a>
+&nbsp;&nbsp;<a href="https://github.com/CircArgs/parsnim/edit/devel/src/parsnim.nim#L46" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -785,7 +851,7 @@ class="link-seesrc" target="_blank">Source</a>
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br/>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2022-09-02 17:19:04 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2022-09-03 02:30:58 UTC</small>
       </div>
     </div>
   </div>

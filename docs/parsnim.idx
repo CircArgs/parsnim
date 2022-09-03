@@ -18,16 +18,17 @@ tag	parsnim.html#tag,Parser[T,R],string	parsnim: tag[T, R](parser: Parser[T, R];
 `$`	parsnim.html#$,State	parsnim: `$`(state: State): string	
 parse_partial	parsnim.html#parse_partial,Parser[T,R],State[T]	parsnim: parse_partial[T, R](parser: Parser[T, R]; state: var State[T]): Result[R]	
 parse_partial	parsnim.html#parse_partial,Parser[T,R],Stream[T]	parsnim: parse_partial[T, R](parser: Parser[T, R]; stream: Stream[T]): Result[R]	
-eos	parsnim.html#eos	parsnim: eos[T, R](): auto	
 parse	parsnim.html#parse,Parser[T,R],Stream[T]	parsnim: parse[T, R](parser: Parser[T, R]; stream: Stream[T]): Stream[R]	
 parse	parsnim.html#parse,Parser[T,R],string	parsnim: parse[T, R](parser: Parser[T, R]; stream: string): Stream[R]	
 skip	parsnim.html#skip,Parser[T,R],Parser[T,R]	parsnim: skip[T, R](parser, other: Parser[T, R]): Parser[T, R]	
 then	parsnim.html#then,Parser[T,R],Parser[T,R]	parsnim: then[T, R](parser, other: Parser[T, R]): Parser[T, R]	
+test_proc	parsnim.html#test_proc,proc(T),string	parsnim: test_proc[T](test_proc_var: proc (x: T): bool; description: string): Parser[T, T]	
 test_proc	parsnim.html#test_proc,proc(T),string,T	parsnim: test_proc[T](test_proc_var: proc (x: T): bool; description: string; expected: T): Parser[\n    T, T]	
 test_seq	parsnim.html#test_seq,Stream[T],string	parsnim: test_seq[T](test_seq: Stream[T]; description: string): Parser[T, T]	
 test_item	parsnim.html#test_item,T,string	parsnim: test_item[T](test: T; description: string): auto	
-test_char	parsnim.html#test_char,char	parsnim: test_char(test: char): auto	
+test_char	parsnim.html#test_char,char	parsnim: test_char(test: char): Parser[char, char]	
 test_string	parsnim.html#test_string,string	parsnim: test_string(test: string): auto	
+test_regex	parsnim.html#test_regex,Regex,string	parsnim: test_regex(pattern: Regex; description: string): Parser[char, string]	
 times	parsnim.html#times,Parser[T,R],int,int	parsnim: times[T, R](parser: Parser[T, R]; min: int; max: int = -1): Parser[T, R]	
 until	parsnim.html#until,Parser[T,R],Parser[T,R]	parsnim: until[T, R](self, parser: Parser[T, R]): Parser[T, R]	
 many	parsnim.html#many,Parser	parsnim: many(parser: Parser): Parser	
