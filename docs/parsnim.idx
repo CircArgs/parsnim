@@ -13,13 +13,15 @@ failure	parsnim.html#failure,int,int,Stream[T],string	parsnim: failure[T](start_
 to_bool	parsnim.html#to_bool.c,Result	parsnim: to_bool(res: Result): bool	
 describe	parsnim.html#describe,Parser,string	parsnim: describe(parser: var Parser; desc: string): Parser	
 map	parsnim.html#map,Parser[T,R],proc(seq[R])	parsnim: map[T, R, NR](parser: Parser[T, R]; map_fn: proc (x: seq[R]): seq[NR]): Parser[\n    T, NR]	
+map	parsnim.html#map,Parser[T,R],proc(R)	parsnim: map[T, R, NR](parser: Parser[T, R]; map_fn: proc (x: R): NR): Parser[T, NR]	
+map	parsnim.html#map,Parser[T,R],NR	parsnim: map[T, R, NR](parser: Parser[T, R]; item: NR): Parser[T, NR]	
 tag	parsnim.html#tag,Parser[T,R],string	parsnim: tag[T, R](parser: Parser[T, R]; tag: string): Parser[T, R]	
 `$`	parsnim.html#$,Parser	parsnim: `$`(parser: Parser): string	
 `$`	parsnim.html#$,State	parsnim: `$`(state: State): string	
 parse_partial	parsnim.html#parse_partial,Parser[T,R],State[T]	parsnim: parse_partial[T, R](parser: Parser[T, R]; state: var State[T]): Result[R]	
 parse_partial	parsnim.html#parse_partial,Parser[T,R],Stream[T]	parsnim: parse_partial[T, R](parser: Parser[T, R]; stream: Stream[T]): Result[R]	
 parse	parsnim.html#parse,Parser[T,R],Stream[T]	parsnim: parse[T, R](parser: Parser[T, R]; stream: Stream[T]): Stream[R]	
-parse	parsnim.html#parse,Parser[T,R],string	parsnim: parse[T, R](parser: Parser[T, R]; stream: string): Stream[R]	
+parse	parsnim.html#parse,Parser[char,R],string	parsnim: parse[char, R](parser: Parser[char, R]; stream: string): Stream[R]	
 skip	parsnim.html#skip,Parser[T,R],Parser[T,R]	parsnim: skip[T, R](parser, other: Parser[T, R]): Parser[T, R]	
 then	parsnim.html#then,Parser[T,R],Parser[T,R]	parsnim: then[T, R](parser, other: Parser[T, R]): Parser[T, R]	
 test_proc	parsnim.html#test_proc,proc(T),string	parsnim: test_proc[T](test_proc_var: proc (x: T): bool; description: string): Parser[T, T]	
@@ -38,3 +40,7 @@ optional	parsnim.html#optional,Parser	parsnim: optional(parser: Parser): auto
 `or`	parsnim.html#or,Parser[T,R],Parser[T,R]	parsnim: `or`[T, R](parser, other: Parser[T, R]): Parser[T, R]	
 `and`	parsnim.html#and,Parser[T,R],Parser[T,R]	parsnim: `and`[T, R](parser, other: Parser[T, R]): Parser[T, R]	
 `not`	parsnim.html#not,Parser[T,R]	parsnim: `not`[T, R](parser: Parser[T, R]): Parser[T, R]	
+pad	parsnim.html#pad,Parser[char,string]	parsnim: pad(parser: Parser[char, string]): Parser[char, string]	
+pad	parsnim.html#pad,Parser[char,char]	parsnim: pad(parser: Parser[char, char]): Parser[char, char]	
+space	parsnim.html#space,Parser[char,string]	parsnim: space(parser: Parser[char, string]): Parser[char, string]	
+space	parsnim.html#space,Parser[char,char]	parsnim: space(parser: Parser[char, char]): Parser[char, char]	

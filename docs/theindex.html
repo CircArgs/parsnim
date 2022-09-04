@@ -119,6 +119,10 @@ window.addEventListener('DOMContentLoaded', main);
           </ul></dd>
 <dt><a name="map" href="#map"><span>map:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
+          data-doc-search-tag="parsnim: map[T, R, NR](parser: Parser[T, R]; item: NR): Parser[T, NR]" href="parsnim.html#map%2CParser%5BT%2CR%5D%2CNR">parsnim: map[T, R, NR](parser: Parser[T, R]; item: NR): Parser[T, NR]</a></li>
+          <li><a class="reference external"
+          data-doc-search-tag="parsnim: map[T, R, NR](parser: Parser[T, R]; map_fn: proc (x: R): NR): Parser[T, NR]" href="parsnim.html#map%2CParser%5BT%2CR%5D%2Cproc%28R%29">parsnim: map[T, R, NR](parser: Parser[T, R]; map_fn: proc (x: R): NR): Parser[T, NR]</a></li>
+          <li><a class="reference external"
           data-doc-search-tag="parsnim: map[T, R, NR](parser: Parser[T, R]; map_fn: proc (x: seq[R]): seq[NR]): Parser[
     T, NR]" href="parsnim.html#map%2CParser%5BT%2CR%5D%2Cproc%28seq%5BR%5D%29">parsnim: map[T, R, NR](parser: Parser[T, R]; map_fn: proc (x: seq[R]): seq[NR]): Parser[
     T, NR]</a></li>
@@ -131,11 +135,17 @@ window.addEventListener('DOMContentLoaded', main);
 <li><a class="reference external"
           data-doc-search-tag="parsnim: optional(parser: Parser): auto" href="parsnim.html#optional%2CParser">parsnim: optional(parser: Parser): auto</a></li>
           </ul></dd>
+<dt><a name="pad" href="#pad"><span>pad:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="parsnim: pad(parser: Parser[char, char]): Parser[char, char]" href="parsnim.html#pad%2CParser%5Bchar%2Cchar%5D">parsnim: pad(parser: Parser[char, char]): Parser[char, char]</a></li>
+          <li><a class="reference external"
+          data-doc-search-tag="parsnim: pad(parser: Parser[char, string]): Parser[char, string]" href="parsnim.html#pad%2CParser%5Bchar%2Cstring%5D">parsnim: pad(parser: Parser[char, string]): Parser[char, string]</a></li>
+          </ul></dd>
 <dt><a name="parse" href="#parse"><span>parse:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="parsnim: parse[T, R](parser: Parser[T, R]; stream: Stream[T]): Stream[R]" href="parsnim.html#parse%2CParser%5BT%2CR%5D%2CStream%5BT%5D">parsnim: parse[T, R](parser: Parser[T, R]; stream: Stream[T]): Stream[R]</a></li>
+          data-doc-search-tag="parsnim: parse[char, R](parser: Parser[char, R]; stream: string): Stream[R]" href="parsnim.html#parse%2CParser%5Bchar%2CR%5D%2Cstring">parsnim: parse[char, R](parser: Parser[char, R]; stream: string): Stream[R]</a></li>
           <li><a class="reference external"
-          data-doc-search-tag="parsnim: parse[T, R](parser: Parser[T, R]; stream: string): Stream[R]" href="parsnim.html#parse%2CParser%5BT%2CR%5D%2Cstring">parsnim: parse[T, R](parser: Parser[T, R]; stream: string): Stream[R]</a></li>
+          data-doc-search-tag="parsnim: parse[T, R](parser: Parser[T, R]; stream: Stream[T]): Stream[R]" href="parsnim.html#parse%2CParser%5BT%2CR%5D%2CStream%5BT%5D">parsnim: parse[T, R](parser: Parser[T, R]; stream: Stream[T]): Stream[R]</a></li>
           </ul></dd>
 <dt><a name="ParseError" href="#ParseError"><span>ParseError:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -166,6 +176,12 @@ window.addEventListener('DOMContentLoaded', main);
 <dt><a name="skip" href="#skip"><span>skip:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="parsnim: skip[T, R](parser, other: Parser[T, R]): Parser[T, R]" href="parsnim.html#skip%2CParser%5BT%2CR%5D%2CParser%5BT%2CR%5D">parsnim: skip[T, R](parser, other: Parser[T, R]): Parser[T, R]</a></li>
+          </ul></dd>
+<dt><a name="space" href="#space"><span>space:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="parsnim: space(parser: Parser[char, char]): Parser[char, char]" href="parsnim.html#space%2CParser%5Bchar%2Cchar%5D">parsnim: space(parser: Parser[char, char]): Parser[char, char]</a></li>
+          <li><a class="reference external"
+          data-doc-search-tag="parsnim: space(parser: Parser[char, string]): Parser[char, string]" href="parsnim.html#space%2CParser%5Bchar%2Cstring%5D">parsnim: space(parser: Parser[char, string]): Parser[char, string]</a></li>
           </ul></dd>
 <dt><a name="State" href="#State"><span>State:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -234,7 +250,7 @@ window.addEventListener('DOMContentLoaded', main);
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br/>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2022-09-03 02:30:58 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2022-09-04 02:47:31 UTC</small>
       </div>
     </div>
   </div>

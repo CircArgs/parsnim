@@ -1,5 +1,5 @@
 import std/[sequtils, strformat, strutils, re, options]
-
+import sugar
 type
   ParseError* = object of ValueError
 
@@ -56,10 +56,19 @@ proc map*[T, R, NR](parser: Parser[T, R], map_fn: proc(x: seq[R]): seq[
   ## takes a parser that goes from Stream[T]->Stream[R] and transforms it to Stream[T]->Stream[NR]
   proc map_parser(state: var State[T]): Result[NR] =
     let old = parser.fn(state)
-    Result[NR](kind: old.kind, value: map_fn(old.value),
-        start_index: old.start_index, end_index: old.end_index, tag: old.tag,
+    Result[NR](kind: old.kind, value: map_fn(old.value), expected: map_fn(
+        old.expected), start_index: old.start_index, end_index: old.end_index,
+            tag: old.tag,
         description: old.description)
   Parser[T, NR](fn: map_parser, description: parser.description)
+
+proc map*[T, R, NR](parser: Parser[T, R], map_fn: proc(x: R): NR): Parser[T, NR] =
+  ## takes a parser that goes from Stream[T]->Stream[R] and transforms it to Stream[T]->Stream[NR]
+  map[T, R, NR](parser, proc(s: seq[R]): seq[NR] = s.map_it(map_fn(it)))
+
+proc map*[T, R, NR](parser: Parser[T, R], item: NR): Parser[T, NR] =
+  ## takes a parser that goes from Stream[T]->Stream[R] and transforms it to Stream[T]->Stream[NR]
+  map[T, R, NR](parser, proc(s: seq[R]): seq[NR] = s.map_it(item))
 
 proc tag*[T, R](parser: Parser[T, R], tag: string): Parser[T, R] =
   ## creates a parser that tags `parser` results
@@ -88,21 +97,21 @@ proc parse_partial*[T, R](parser: Parser[T, R], stream: Stream[T]): Result[R] =
 
 proc eos_parser[T, R](state: var State[T]): Result[R] =
   if state.index >= state.stream.len:
-    return success[R](state.index, state.index, @[], "end of stream")
-  failure[R](state.index, state.index, "end of stream")
+    return success[R](state.index, state.index, @[], "`end of stream`")
+  failure[R](state.index, state.index, "`end of stream`")
 
 proc eos[T, R]: auto =
   ## parser spots the end of a stream
   Parser[T, R](fn: eos_parser[T, R],
-    description: "end of stream")
+    description: "`end of stream`")
 
 proc parse*[T, R](parser: Parser[T, R], stream: Stream[T]): Stream[R] =
   ## run a parser on a stream
   result = parser.skip(eos[T, R]()).parse_partial(stream).value
 
-proc parse*[T, R](parser: Parser[T, R], stream: string): Stream[R] =
+proc parse*[char, R](parser: Parser[char, R], stream: string): Stream[R] =
   ## run a parser on a stream that is a string
-  result = parser.skip(eos[T, R]()).parse_partial(stream.toSeq).value
+  result = parser.skip(eos[char, R]()).parse_partial(stream.toSeq).value
 
 proc skip*[T, R](parser, other: Parser[T, R]): Parser[T, R] =
   ## parses `parser` then `other` but ignores `other` result
@@ -219,7 +228,9 @@ proc test_item*[T](test: T, description: string): auto =
 
 proc test_char*(test: char): Parser[char, char] =
   ## test if a char is next in the stream (usually a string for char test)
-  test_item(test, fmt"char {test}")
+  test_item(test, fmt"`char {test}`")
+
+
 
 proc test_string*(test: string): auto =
   ##[
@@ -233,7 +244,7 @@ proc test_string*(test: string): auto =
     # @["abc"]
   ]##
   test_seq(test.to_seq,
-    fmt"string {test}").map(proc(x: seq[char]): auto = @[x.map_it($it).join])
+    fmt"string {test}").map(proc(x: seq[char]): seq[string] = @[x.map_it($it).join])
 
 proc test_regex*(pattern: Regex, description: string): Parser[char, string] =
   ##[
@@ -250,11 +261,13 @@ proc test_regex*(pattern: Regex, description: string): Parser[char, string] =
     let match = cast[string](state.stream[
         state.index..<state.stream.len]).findBounds(pattern)
     if match[0] > -1:
-      state.index = match[1]+1
-      return success(match[0], match[1], @[state.stream[match[0]..match[
+      let start_index = state.index
+      state.index = match[1]+1+state.index
+      return success(start_index, state.index, @[state.stream[match[0]..match[
           1]].map_it($it).join], description)
     failure[string](state.index, -1, description)
-  Parser[char, string](fn: regex_parser, description: fmt"regex {description}")
+  Parser[char, string](fn: regex_parser,
+      description: fmt"`regex {description}`")
 
 proc times*[T, R](parser: Parser[T, R], min: int, max: int = -1): Parser[T, R] =
   ##[
@@ -272,6 +285,7 @@ proc times*[T, R](parser: Parser[T, R], min: int, max: int = -1): Parser[T, R] =
   let description = if max == -1:
     fmt"{parser.description} {min} times"
     elif min == 0 and max == int.high: fmt"{parser.description} many times"
+    elif min == 0 and max == 1: fmt"optional {parser.description}"
     elif min == 0: fmt"{parser.description} at most {max_count} times"
     elif max == int.high: fmt"{parser.description} at least {min} times"
     else: fmt"{parser.description} from {min} to {max_count} times"
@@ -428,3 +442,39 @@ proc `not`*[T, R](parser: Parser[T, R]): Parser[T, R] =
     result.description = fmt"not {result.description}"
     state.index = result.end_index
   Parser[T, R](fn: not_parser, description: description)
+
+proc pad*(parser: Parser[char, string]): Parser[char, string] =
+  ##[
+  optional whitespace
+
+  .. code-block:: nim
+    
+    echo test_string("hello").pad.parse("hello    ")
+    # @["hello"]
+  ]##
+  parser.skip(test_regex(re"\s*", "padding").optional)
+
+proc pad*(parser: Parser[char, char]): Parser[char, char] =
+  ##[
+  optional whitespace
+
+  .. code-block:: nim
+    
+    echo test_char('c').pad.parse("c    ")
+    # @['c']
+  ]##
+  parser.skip(test_regex(re"\s*", "padding").optional.map(' '))
+
+proc space*(parser: Parser[char, string]): Parser[char, string] =
+  parser.skip(test_char(' ').map(""))
+
+proc space*(parser: Parser[char, char]): Parser[char, char] =
+  ##[
+  optional whitespace
+
+  .. code-block:: nim
+    
+    echo test_char('c').space.parse("c ")
+    # @['c']
+  ]##
+  parser.skip(test_char(' '))
