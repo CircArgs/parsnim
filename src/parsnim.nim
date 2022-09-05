@@ -86,7 +86,12 @@ proc `$`*(state: State): string =
 proc parse_partial*[T, R](parser: Parser[T, R], state: var State[T]): Result[R] =
   result = parser.fn(state)
   if not result:
-    let expected = if result.expected.len > 0: fmt" {result.expected}" else: ""
+    var expected = ""
+    try:
+      $result.expected
+      expected = if result.expected.len > 0: fmt" {result.expected}" else: ""
+    except:
+      discard
     let got = try: fmt"got {state.stream[result.start_index..<result.end_index]}" except IndexDefect: "got `out of stream`" 
     raise newException(ParseError, fmt"failed to parse with error: Expected{expected} Description: `{result.description}` {got} @ {result.start_index}:{result.end_index}")
 

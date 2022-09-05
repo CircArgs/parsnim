@@ -8,14 +8,14 @@ type
     nkAdd,        # an addition
     nkSub,        # a subtraction
 
-  Node = ref NodeObj
+  Node= ref object of RootObj
 
-  NodeObj = object
-    case kind: NodeKind # the `kind` field is the discriminator
-    of nkUnk: discard
-    of nkNumber: val: float
-    of nkAdd, nkSub:
-      leftOp, rightOp: Node
+  Number= ref object of Node
+    val: float
+  
+  Operator= ref object of Node
+    kind: NodeKind
+    left, right: Node
 
 let add = test_char('+').pad.map(nkAdd)
 let sub = test_char('-').pad.map(nkSub)
@@ -25,17 +25,19 @@ let e = number.then(add).then(number)
 echo e.parse("5 + 4")
 #@[nkNumber, nkAdd, nkNumber]
 
-var expression = test_item(nkUnk, "").map(Node(kind: nkUnk))
+var expression: Parser[NodeKind, Operator] 
 
-let op_expr = proc(op: NodeKind): Parser[NodeKind, Node] =
-  proc expression_parser(state: var State[NodeKind]): Result[Node] =
+let op_expr = proc(op: NodeKind): Parser[NodeKind, Operator] =
+  proc expression_parser(state: var State[NodeKind]): Result[Operator] =
     let index = state.stream[state.index..<state.stream.len].find(op)
     if index == -1:
-      return failure[Node](state.index, state.index+1, "")
+      return failure[Operator](state.index, state.index+1, "")
     let left = expression.parse_partial(state.stream[state.index..<index])
     let right = expression.parse_partial(state.stream[
         index+1..<state.stream.len])
     state.index = right.end_index
-    success(state.index, right.end_index, @[Node(kind: op, leftOp: left.value[0],
-        rightOp: right.value[0])], "")
-  Parser[NodeKind, Node](fn: expression_parser)
+    success(state.index, right.end_index, @[Operator(kind: op, left: left.value[0], right: right.value[0])], "")
+  Parser[NodeKind, Operator](fn: expression_parser)
+
+let number_expr = test_item(nkNumber, "number").map(Number())
+expression = op_expr(nkSub) or op_expr(nkAdd) or number_expr
