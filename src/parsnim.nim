@@ -1,5 +1,4 @@
 import std/[sequtils, strformat, strutils, re, options]
-import sugar
 type
   ParseError* = object of ValueError
 
@@ -66,7 +65,7 @@ proc map*[T, R, NR](parser: Parser[T, R], map_fn: proc(x: R): NR): Parser[T, NR]
 
 proc map*[T, R, NR](parser: Parser[T, R], item: NR): Parser[T, NR] =
   ## takes a parser that goes from Stream[T]->Stream[R] and transforms it to Stream[T]->Stream[NR]
-  map[T, R, NR](parser, proc(s: seq[R]): seq[NR] = s.map_it(item))
+  map[T, R, NR](parser, proc(s: seq[R]): seq[NR] = s.map(proc(x: auto): auto = item))
 
 proc tag*[T, R](parser: Parser[T, R], tag: string): Parser[T, R] =
   ## creates a parser that tags `parser` results
@@ -87,11 +86,10 @@ proc parse_partial*[T, R](parser: Parser[T, R], state: var State[T]): Result[R] 
   result = parser.fn(state)
   if not result:
     var expected = ""
-    try:
-      $result.expected
-      expected = if result.expected.len > 0: fmt" {result.expected}" else: ""
-    except:
-      discard
+    # try:
+    #   expected = if result.expected.len > 0: fmt" {result.expected}" else: ""
+    # except:
+    #   discard
     let got = try: fmt"got {state.stream[result.start_index..<result.end_index]}" except IndexDefect: "got `out of stream`" 
     raise newException(ParseError, fmt"failed to parse with error: Expected{expected} Description: `{result.description}` {got} @ {result.start_index}:{result.end_index}")
 
