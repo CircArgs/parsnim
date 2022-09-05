@@ -7,12 +7,12 @@ type
     Match, Failure
 
   Result*[T] = object of RootObj ## Result objects are returned by all parsers
-    kind: ResultType             ## states whether the result is a `Match` or `Failure`
-    value: Stream[T] ## `Parser`s translate from one stream to another hence result values are `Stream`s
-    start_index, end_index: int  ## start and end indices for the value/expected
-    tag: seq[string] ## an optional seq of strings that can be used to mark results for further processing
-    description: string ## describes what the value would represent. used when erroring on failed parsing
-    expected: Stream[T] ## for failures, what value wanted to be. used when erroring on failed parsing
+    kind*: ResultType             ## states whether the result is a `Match` or `Failure`
+    value*: Stream[T] ## `Parser`s translate from one stream to another hence result values are `Stream`s
+    start_index*, end_index*: int  ## start and end indices for the value/expected
+    tag*: seq[string] ## an optional seq of strings that can be used to mark results for further processing
+    description*: string ## describes what the value would represent. used when erroring on failed parsing
+    expected*: Stream[T] ## for failures, what value wanted to be. used when erroring on failed parsing
 
   Stream*[T] = seq[T] ## Stream is an alias for seq[T]
 
@@ -20,8 +20,7 @@ type
     index*: int
     stream*: Stream[T]
 
-  ParseFn*[T, R] = proc(s: var State[T]): Result[
-      R] ## function defined to manipulate `State` for the next parser and return a result
+  ParseFn*[T, R] = proc(s: var State[T]): Result[R] ## function defined to manipulate `State` for the next parser and return a result
   Parser*[T, R] = object ## central object to wrap all `ParseFn`s in
     fn*: ParseFn[T, R]
     description*: string
@@ -51,8 +50,7 @@ proc describe*(parser: var Parser, desc: string): Parser =
   parser.description = desc
   parser
 
-proc map*[T, R, NR](parser: Parser[T, R], map_fn: proc(x: seq[R]): seq[
-    NR]): Parser[T, NR] =
+proc map*[T, R, NR](parser: Parser[T, R], map_fn: proc(x: seq[R]): seq[NR]): Parser[T, NR] =
   ## takes a parser that goes from Stream[T]->Stream[R] and transforms it to Stream[T]->Stream[NR]
   proc map_parser(state: var State[T]): Result[NR] =
     let old = parser.fn(state)
@@ -89,7 +87,8 @@ proc parse_partial*[T, R](parser: Parser[T, R], state: var State[T]): Result[R] 
   result = parser.fn(state)
   if not result:
     let expected = if result.expected.len > 0: fmt" {result.expected}" else: ""
-    raise newException(ParseError, fmt"failed to parse with error: Expected{expected} `{result.description}` got {state.stream[result.start_index..<result.end_index]} @ {result.start_index}:{result.end_index}")
+    let got = try: fmt"got {state.stream[result.start_index..<result.end_index]}" except IndexDefect: "got `out of stream`" 
+    raise newException(ParseError, fmt"failed to parse with error: Expected{expected} Description: `{result.description}` {got} @ {result.start_index}:{result.end_index}")
 
 proc parse_partial*[T, R](parser: Parser[T, R], stream: Stream[T]): Result[R] =
   var state = State[T](stream: stream)
@@ -230,7 +229,8 @@ proc test_char*(test: char): Parser[char, char] =
   ## test if a char is next in the stream (usually a string for char test)
   test_item(test, fmt"`char {test}`")
 
-
+proc str*[T](parser: Parser[T, char]): Parser[T, string] =
+  map[T, char, string](parser, proc(x: seq[char]): seq[string] = @[x.map_it($it).join])
 
 proc test_string*(test: string): auto =
   ##[
@@ -243,8 +243,10 @@ proc test_string*(test: string): auto =
     # <Parser: string abc>
     # @["abc"]
   ]##
-  test_seq(test.to_seq,
-    fmt"string {test}").map(proc(x: seq[char]): seq[string] = @[x.map_it($it).join])
+  test_seq(test.to_seq, fmt"string {test}").str
+
+
+
 
 proc test_regex*(pattern: Regex, description: string): Parser[char, string] =
   ##[
@@ -466,7 +468,16 @@ proc pad*(parser: Parser[char, char]): Parser[char, char] =
   parser.skip(test_regex(re"\s*", "padding").optional.map(' '))
 
 proc space*(parser: Parser[char, string]): Parser[char, string] =
-  parser.skip(test_char(' ').map(""))
+  ##[
+  optional whitespace
+
+  .. code-block:: nim
+    
+    let p = test_string("9").space
+    echo p.parse("9")
+    # @["9"]
+  ]##
+  parser.skip(test_char(' ').map(" "))
 
 proc space*(parser: Parser[char, char]): Parser[char, char] =
   ##[
