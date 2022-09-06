@@ -6,7 +6,7 @@
         {
             "label": "Build Nim Project",
             "type": "shell",
-            "command": "/home/nick/.nimble/bin/nim c --out:bin/main -d:debug --debugger:native examples/expressions.nim",
+            "command": "/home/nick/.nimble/bin/nim c --out:bin/main -d:debug --debugger:native --passC:-O1 examples/expressions.nim",
             "group": {
                 "kind": "build",
                 "isDefault": true
