@@ -1,4 +1,5 @@
 import std/[sequtils, strformat, strutils, re, options]
+import sugar
 type
   ParseError* = object of ValueError
 
@@ -118,10 +119,15 @@ proc parse*[char, R](parser: Parser[char, R], stream: string): Stream[R] =
 proc skip*[T, R](parser, other: Parser[T, R]): Parser[T, R] =
   ## parses `parser` then `other` but ignores `other` result
   proc skip_parser(state: var State[T]): Result[R] =
+    # dump state
+    # dump parser
+    # dump other
     let first = parser.fn(state)
+    # dump first
     if not first:
       return first
     let to_skip = other.fn(state)
+    # dump to_skip
     if not to_skip:
       return to_skip
     first
@@ -150,8 +156,7 @@ proc then*[T, R](parser, other: Parser[T, R]): Parser[T, R] =
         result.value, other_result.value), description)
   Parser[T, R](fn: then_parser, description: description)
 
-proc test_proc[T](test_proc_var: proc(x: T): bool, description: string,
-    expected: Option[T]): Parser[T, T] =
+proc test_proc[T](test_proc_var: proc(x: T): bool, description: string, expected: Option[T]): Parser[T, T] =
   ## tests a procedure against the next value in the stream
   let exp = if expected.isSome: @[expected.get] else: @[]
   proc test_proc_parser(state: var State[T]): Result[T] =
@@ -161,7 +166,7 @@ proc test_proc[T](test_proc_var: proc(x: T): bool, description: string,
             state.index]], description)
         state.index+=1
         return
-    result = failure[T](state.index, state.index+1, exp, description)
+    failure[T](state.index, state.index+1, exp, description)
   Parser[T, T](fn: test_proc_parser, description: description)
 
 proc test_proc*[T](test_proc_var: proc(x: T): bool,
@@ -263,14 +268,13 @@ proc test_regex*(pattern: Regex, description: string): Parser[char, string] =
     # @["_hello1984"]
   ]##
   proc regex_parser(state: var State[char]): Result[string] =
-    let match = cast[string](state.stream[
-        state.index..<state.stream.len]).findBounds(pattern)
-    if match[0] > -1:
+    let match = cast[string](state.stream[state.index..<state.stream.len]).findBounds(pattern)
+    if (match[0] == 0) and (match[1] > -1):
       let start_index = state.index
-      state.index = match[1]+1+state.index
-      return success(start_index, state.index, @[state.stream[match[0]..match[
-          1]].map_it($it).join], description)
-    failure[string](state.index, -1, description)
+      state.index = match[1]+1+start_index
+      result = success(start_index, state.index, @[state.stream[start_index..<state.index].map_it($it).join], description)
+    else:
+      result = failure[string](state.index, -1, description)
   Parser[char, string](fn: regex_parser,
       description: fmt"`regex {description}`")
 
@@ -302,7 +306,6 @@ proc times*[T, R](parser: Parser[T, R], min: int, max: int = -1): Parser[T, R] =
       result = parser.fn(state)
       if result:
         values.add(result.value)
-        state.index = result.end_index
         times += 1
       elif times < min:
         result = failure[R](start_index, state.index, description)
@@ -457,7 +460,7 @@ proc pad*(parser: Parser[char, string]): Parser[char, string] =
     echo test_string("hello").pad.parse("hello    ")
     # @["hello"]
   ]##
-  parser.skip(test_regex(re"\s*", "padding").optional)
+  parser.skip(test_regex(re"\s+", "padding").optional)
 
 proc pad*(parser: Parser[char, char]): Parser[char, char] =
   ##[
@@ -468,7 +471,7 @@ proc pad*(parser: Parser[char, char]): Parser[char, char] =
     echo test_char('c').pad.parse("c    ")
     # @['c']
   ]##
-  parser.skip(test_regex(re"\s*", "padding").optional.map(' '))
+  parser.skip(test_regex(re"\s+", "padding").optional.map(' '))
 
 proc space*(parser: Parser[char, string]): Parser[char, string] =
   ##[

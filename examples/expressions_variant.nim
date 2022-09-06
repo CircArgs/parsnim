@@ -27,7 +27,7 @@ echo e.parse("5 + 4")
 
 var expression: Parser[NodeKind, Operator] 
 
-let op_expr = proc(op: NodeKind): Parser[NodeKind, Operator] =
+let op_expr = proc(op: static NodeKind): Parser[NodeKind, Operator] =
   proc expression_parser(state: var State[NodeKind]): Result[Operator] =
     let index = state.stream[state.index..<state.stream.len].find(op)
     if index == -1:
