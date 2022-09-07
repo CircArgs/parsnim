@@ -29,8 +29,12 @@ test_proc	parsnim.html#test_proc,proc(T),string,T	parsnim: test_proc[T](test_pro
 test_seq	parsnim.html#test_seq,Stream[T],string	parsnim: test_seq[T](test_seq: Stream[T]; description: string): Parser[T, T]	
 test_item	parsnim.html#test_item,T,string	parsnim: test_item[T](test: T; description: string): auto	
 test_char	parsnim.html#test_char,char	parsnim: test_char(test: char): Parser[char, char]	
+str	parsnim.html#str,Parser[T,char]	parsnim: str[T](parser: Parser[T, char]): Parser[T, string]	
+anything	parsnim.html#anything	parsnim: anything[T]()	
+nothing	parsnim.html#nothing	parsnim: nothing[T]()	
 test_string	parsnim.html#test_string,string	parsnim: test_string(test: string): auto	
 test_regex	parsnim.html#test_regex,Regex,string	parsnim: test_regex(pattern: Regex; description: string): Parser[char, string]	
+test_regex_string	parsnim.html#test_regex_string,Regex,string	parsnim: test_regex_string(pattern: Regex; description: string): Parser[string, string]	
 times	parsnim.html#times,Parser[T,R],int,int	parsnim: times[T, R](parser: Parser[T, R]; min: int; max: int = -1): Parser[T, R]	
 until	parsnim.html#until,Parser[T,R],Parser[T,R]	parsnim: until[T, R](self, parser: Parser[T, R]): Parser[T, R]	
 many	parsnim.html#many,Parser	parsnim: many(parser: Parser): Parser	

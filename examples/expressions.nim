@@ -1,63 +1,77 @@
 import parsnim
-import std/[re, strutils, strformat]
+import std/[re, strutils, strformat, tables]
 import sugar
 type
   NodeKind = enum # the different node types
-    nkUnk,
-    nkNumber,     # a leaf with a number value
-    nkAdd,        # an addition
-    nkSub,        # a subtraction
+    Unk,
+    Number,       # a leaf with a number value
+    Add,          # an addition
+    Sub,          # a subtraction
+    Mul,          # a multiplication
+    Div           # a division
 
   Node = ref NodeObj
 
   NodeObj = object
-    case kind: NodeKind # the `kind` field is the discriminator
-    of nkUnk: discard
-    of nkNumber: val: float
-    of nkAdd, nkSub:
+    case kind: NodeKind 
+    of Unk: discard
+    of Number: val: float
+    of Add, Sub, Mul, Div:
       leftOp, rightOp: Node
 
 proc `$`(node: Node): string =
   case node.kind:
-  of nkAdd, nkSub:
+  of Add, Sub, Mul, Div:
     fmt"{node.kind}({node.leftOp}, {node.rightOp})"
+  of Number:
+    fmt"Number({node.val})"
   else:
     $node.kind
 
-let add = test_char('+').pad.map(nkAdd)
-let sub = test_char('-').pad.map(nkSub)
-let number = test_regex(re"[0-9]+", "number").pad.map(nkNumber)
 
-let e = (number or sub or add).many
-echo e
-# echo e.parse("5+ 4")
-#@[nkNumber, nkAdd, nkNumber]
+let op_map = {'+': Add, '-': Sub, '*': Mul, '/':Div}.toTable
+let add = test_char('+').str#.pad.map(nkAdd)
+let mul = test_char('*').str#.pad.map(nkAdd)
+let sub = test_char('-').str#.pad.map(nkSub)
+let divide = test_char('/').str#.pad.map(nkSub)
+let num_re =re"[+-]?([0-9]*[.])?[0-9]+" 
+let number = test_regex(num_re, "number")#.pad.map(proc(s: auto): Node(kind: Number, val: s.parse_float))
 
-var expression = test_item(nkUnk, "").map(Node(kind: nkUnk))
+let tokenizer = (number or sub or add or mul or divide).pad.many()
+echo tokenizer
+echo tokenizer.parse("5+ 4")
+#@["5", "+", "4"]
 
-let op_expr = proc(op: NodeKind): Parser[NodeKind, Node] =
-  proc expression_parser(state: var State[NodeKind]): Result[Node] =
-    let index = state.stream[state.index..<state.stream.len].find(op)
-    # echo index
+# base expression will be replaced later
+var expression = test_item("", "").map(Node(kind: Unk))
+
+let op_expr = proc(op: char): Parser[string, Node] =
+  proc expression_parser(state: var State[string]): Result[Node] =
+    let index = state.stream[state.index..<state.stream.len].find($op)
     if index == -1:
       return failure[Node](state.index, state.index+1, "")
     let left = expression.parse_partial(state.stream[state.index..<index])
     let right = expression.parse_partial(state.stream[
         index+1..<state.stream.len])
     state.index = right.end_index + index+1
-    case op:
-    of nkAdd, nkSub:
-      success(left.start_index, state.index, @[Node(kind: op,
+    let kind = op_map[op]
+    case kind:
+    of Add, Sub, Mul, Div:
+      success(left.start_index, state.index, @[Node(kind: kind,
           leftOp: left.value[0],
         rightOp: right.value[0])], "")
     else:
       raise newException(Exception, "not an operator")
-  Parser[NodeKind, Node](fn: expression_parser)
+  Parser[string, Node](fn: expression_parser, description: $op)
 
-let number_expr = test_item(nkNumber, "number").map(Node(kind: nkNumber))
-expression = op_expr(nkSub) or op_expr(nkAdd) or number_expr
+let number_expr = map[string, string, Node](test_regex_string(num_re, "number"), proc(s: string): Node = Node(kind: Number, val: s.parse_float))
+expression = op_expr('-') or op_expr('+') or op_expr('*') or op_expr('/') or number_expr
+echo expression
+#<Parser: - or + or * or / or number>
 
-let tokens = e.parse("5 - 4")
+let tokens = tokenizer.parse("3.14 - 4/-2")
 echo tokens
+#@[Sub(Number(3.14), Div(Number(4.0), Number(-2.0)))]
 let nodes = expression.parse(tokens)
 echo nodes
+#@[Sub(Number(3.14), Div(Number(4.0), Number(-2.0)))]

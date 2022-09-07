@@ -240,6 +240,9 @@ proc test_char*(test: char): Parser[char, char] =
 proc str*[T](parser: Parser[T, char]): Parser[T, string] =
   map[T, char, string](parser, proc(x: seq[char]): seq[string] = @[x.map_it($it).join])
 
+proc anything*[T] = test_proc(proc(_: [T]): bool = true, "anything")
+proc nothing*[T] = test_proc(proc(_: [T]): bool = false, "nothing")
+
 proc test_string*(test: string): auto =
   ##[
     tests if a string is next in a stream (special case of `test_seq`)
@@ -252,9 +255,6 @@ proc test_string*(test: string): auto =
     # @["abc"]
   ]##
   test_seq(test.to_seq, fmt"string {test}").str
-
-
-
 
 proc test_regex*(pattern: Regex, description: string): Parser[char, string] =
   ##[
@@ -277,6 +277,26 @@ proc test_regex*(pattern: Regex, description: string): Parser[char, string] =
       result = failure[string](state.index, -1, description)
   Parser[char, string](fn: regex_parser,
       description: fmt"`regex {description}`")
+
+proc test_regex_string*(pattern: Regex, description: string): Parser[string, string] =
+  test_proc[string](proc(x: string): bool = x.match(pattern), description)
+
+# proc test_regex*[T](pattern: Regex, description: string): auto =
+#   ##[
+#   tests if a regex pattern is next in a stream
+
+#   .. code-block:: nim
+#     let r = test_regex(re"[a-zA-Z_][a-zA-Z0-9_]*", "identifier")
+#     echo r
+#     echo r.parse("_hello1984")
+#     # <Parser: regex identifier>
+#     # @["_hello1984"]
+#   ]##
+#   when T is string:
+#     return test_regex_string(pattern, description)
+#   else:
+#     return test_regex_char(pattern, description)
+
 
 proc times*[T, R](parser: Parser[T, R], min: int, max: int = -1): Parser[T, R] =
   ##[
