@@ -1,5 +1,5 @@
 import std/[sequtils, strformat, strutils, re, options]
-import sugar
+
 type
   ParseError* = object of ValueError
 
@@ -87,12 +87,14 @@ proc parse_partial*[T, R](parser: Parser[T, R], state: var State[T]): Result[R] 
   result = parser.fn(state)
   if not result:
     var expected = ""
-    # try:
-    #   expected = if result.expected.len > 0: fmt" {result.expected}" else: ""
-    # except:
-    #   discard
-    let got = try: fmt"got {state.stream[result.start_index..<result.end_index]}" except IndexDefect: "got `out of stream`" 
-    raise newException(ParseError, fmt"failed to parse with error: Expected{expected} Description: `{result.description}` {got} @ {result.start_index}:{result.end_index}")
+    try:
+      expected = if result.expected.len > 0: fmt" {result.expected}" else: ""
+    except:
+      discard
+    let show = if result.start_index!=result.end_index: state.stream[result.start_index..<result.end_index] else: state.stream[result.start_index..<min(result.start_index+3, state.stream.len)]
+    let got = try: fmt"got {show}" except IndexDefect, RangeDefect: "got `out of stream` or malformed result" 
+    let range = if result.start_index!=result.end_index: "{result.start_index}:{result.end_index}" else: fmt"{result.start_index}:..."
+    raise newException(ParseError, fmt"failed to parse with error: Expected{expected} Description: `{result.description}` {got} @ {range}")
 
 proc parse_partial*[T, R](parser: Parser[T, R], stream: Stream[T]): Result[R] =
   var state = State[T](stream: stream)
@@ -237,6 +239,9 @@ proc test_char*(test: char): Parser[char, char] =
   ## test if a char is next in the stream (usually a string for char test)
   test_item(test, fmt"`char {test}`")
 
+proc str*[T](parser: Parser[T, string]): Parser[T, string] =
+  map[T, string, string](parser, proc(x: seq[string]): seq[string] = @[x.map_it(it).join])
+
 proc str*[T](parser: Parser[T, char]): Parser[T, string] =
   map[T, char, string](parser, proc(x: seq[char]): seq[string] = @[x.map_it($it).join])
 
@@ -274,7 +279,7 @@ proc test_regex*(pattern: Regex, description: string): Parser[char, string] =
       state.index = match[1]+1+start_index
       result = success(start_index, state.index, @[state.stream[start_index..<state.index].map_it($it).join], description)
     else:
-      result = failure[string](state.index, -1, description)
+      result = failure[string](state.index, state.index, description)
   Parser[char, string](fn: regex_parser,
       description: fmt"`regex {description}`")
 
