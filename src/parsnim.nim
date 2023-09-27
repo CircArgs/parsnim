@@ -1,49 +1,51 @@
 import std/[sequtils, strformat, strutils, re, options]
-
+{.experimental: "views".}
 type
+  Stream*[T] = openArray[T]
+
   ParseError* = object of ValueError
 
   ResultType* = enum
     Match, Failure
 
   Result*[T] = object of RootObj ## Result objects are returned by all parsers
-    kind*: ResultType             ## states whether the result is a `Match` or `Failure`
-    value*: Stream[T] ## `Parser`s translate from one stream to another hence result values are `Stream`s
     start_index*, end_index*: int  ## start and end indices for the value/expected
-    tag*: seq[string] ## an optional seq of strings that can be used to mark results for further processing
     description*: string ## describes what the value would represent. used when erroring on failed parsing
-    expected*: Stream[T] ## for failures, what value wanted to be. used when erroring on failed parsing
+    case kind*: ResultType             ## states whether the result is a `Match` or `Failure`\
+    of Match:
+      value*: seq[T] ## `Parser`s translate from one stream to another hence result values are `Stream`s
+    of Failure:
+      expected*: seq[T] ## for failures, what value wanted to be. used when erroring on failed parsing
 
-  Stream*[T] = seq[T] ## Stream is an alias for seq[T]
-
-  State*[T] = object ## object passed to all parsers to track position and the stream being parsed
-    index*: int
-    stream*: Stream[T]
-
-  ParseFn*[T, R] = proc(s: var State[T]): Result[R] ## function defined to manipulate `State` for the next parser and return a result
+  ParseFn*[T, R] = proc(stream: Stream[T]; index: var int): Result[R] ## function defined to manipulate `State` for the next parser and return a result
   Parser*[T, R] = object ## central object to wrap all `ParseFn`s in
     fn*: ParseFn[T, R]
     description*: string
 
-proc success*[T](start_index, end_index: int, value: Stream[T],
-    description: string): Result[T] =
+proc success*[T](start_index, end_index: int; value: seq[T]; description: string = ""): Result[T] =
   ## function to generate `Match` `Results`
   Result[T](kind: ResultType.Match, value: value, start_index: start_index,
       end_index: end_index, description: description)
+proc success*[T](start_index, end_index: int; value: T; description: string = ""): Result[T] = success(start_index, end_index, @[value], description)
 
-proc failure*[T](start_index, end_index: int, description: string): Result[T] =
-  ## function to generate `Failure` `Results` without an expected value
-  Result[T](kind: ResultType.Failure, start_index: start_index,
-      end_index: end_index, description: description)
-
-proc failure*[T](start_index, end_index: int, expected: Stream[T],
-    description: string): Result[T] =
+proc failure*[T](start_index, end_index: int; expected: seq[T]; description: string = ""): Result[T] =
   ## function to generate `Failure` `Results` with an expected value
   Result[T](kind: ResultType.Failure, expected: expected,
       start_index: start_index, end_index: end_index, description: description)
 
-converter to_bool*(res: Result): bool = ## Results are truthy/falsey
-  res.kind == ResultType.Match
+proc failure*[T](start_index, end_index: int; expected: T; description: string = ""): Result[T] = failure[T](start_index, end_index, @[expected], description)
+
+proc `&`*[T](a, b: Result[T]): Result[T] = 
+  if (a.kind, b.kind)==(Match, Match):
+    return success[T](a.start_index.min(b.start_index), a.end_index.max(b.end_index), a.value & b.value)
+  elif (a.kind, b.kind)==(Match, Failure):
+    return b
+  elif (a.kind, b.kind)==(Failure, Match):
+    return a
+  else:
+    return failure[T](a.start_index.min(b.start_index), a.end_index.max(b.end_index), a.expected & b.expected)
+
+converter to_bool*(res: Result): bool {.inline.} = res.kind == ResultType.Match ## Results are truthy/falsey
 
 proc describe*(parser: var Parser, desc: string): Parser =
   ## describe a parser
@@ -52,12 +54,12 @@ proc describe*(parser: var Parser, desc: string): Parser =
 
 proc map*[T, R, NR](parser: Parser[T, R], map_fn: proc(x: seq[R]): seq[NR]): Parser[T, NR] =
   ## takes a parser that goes from Stream[T]->Stream[R] and transforms it to Stream[T]->Stream[NR]
-  proc map_parser(state: var State[T]): Result[NR] =
-    let old = parser.fn(state)
-    Result[NR](kind: old.kind, value: map_fn(old.value), expected: map_fn(
-        old.expected), start_index: old.start_index, end_index: old.end_index,
-            tag: old.tag,
-        description: old.description)
+  proc map_parser(stream: Stream[T]; index: var int): Result[NR] =
+    let old = parser.fn(stream, index)
+    if old.kind == Match:
+      success(old.start_index, old.end_index, old.value, old.description)
+    else:
+      failure(old.start_index, old.end_index, old.expected, old.description)
   Parser[T, NR](fn: map_parser, description: parser.description)
 
 proc map*[T, R, NR](parser: Parser[T, R], map_fn: proc(x: R): NR): Parser[T, NR] =
@@ -65,75 +67,80 @@ proc map*[T, R, NR](parser: Parser[T, R], map_fn: proc(x: R): NR): Parser[T, NR]
   map[T, R, NR](parser, proc(s: seq[R]): seq[NR] = s.map_it(map_fn(it)))
 
 proc map*[T, R, NR](parser: Parser[T, R], item: NR): Parser[T, NR] =
-  ## takes a parser that goes from Stream[T]->Stream[R] and transforms it to Stream[T]->Stream[NR]
+  ## takes a parser that goes from Stream[T]->Stream[R] and transforms it to Stream[T]->Stream[NR] of just `item`
   map[T, R, NR](parser, proc(s: seq[R]): seq[NR] = s.map(proc(x: auto): auto = item))
-
-proc tag*[T, R](parser: Parser[T, R], tag: string): Parser[T, R] =
-  ## creates a parser that tags `parser` results
-  proc tag_parser(state: var State[T]): Result[R] =
-    let old = parser.fn(state)
-    Result(kind: old.kind, value: old.value,
-        start_index: old.start_index, end_index: old.end_index, tag: tag,
-        description: old.description)
-  Parser(fn: tag_parser, description: parser.description)
 
 proc `$`*(parser: Parser): string =
   fmt"<Parser: {parser.description}>"
 
-proc `$`*(state: State): string =
-  fmt"<State: {state.index}; {state.stream}>"
-
-proc parse_partial*[T, R](parser: Parser[T, R], state: var State[T]): Result[R] =
-  result = parser.fn(state)
+proc parse_partial*[T, R](parser: Parser[T, R]; stream: Stream[T]; index: var int): Result[R] =
+  result = parser.fn(stream, index)
   if not result:
-    var expected = ""
-    try:
-      expected = if result.expected.len > 0: fmt" {result.expected}" else: ""
-    except:
-      discard
-    let show = if result.start_index!=result.end_index: state.stream[result.start_index..<result.end_index] else: state.stream[result.start_index..<min(result.start_index+3, state.stream.len)]
+    var expected=""
+    if result.expected.len==1:
+      expected = $(result.expected[0])
+      if result.expected[0] is string:
+        expected= &"\"{expected}\""
+    elif result.expected is seq[string]:
+      expected = &"\"{result.expected.join}\""
+    else:
+      expected = ($result.expected)[1..^1]
+
+    var show = ""
+    let show_seq = if result.start_index!=result.end_index:
+      echo result, " ", min(result.end_index, stream.len), " ", stream.len, " ", result.end_index
+      stream[result.start_index..<min(result.end_index, stream.len)] 
+    else: 
+      stream[result.start_index..<result.start_index+1]
+    if show_seq.len == 1:
+      show = $show_seq[0]
+    elif result.expected is seq[string]:
+      show = &"\"{show_seq.join}\""
+    else:
+      show = ($show_seq)[1..^1]
+
     let got = try: fmt"got {show}" except IndexDefect, RangeDefect: "got `out of stream` or malformed result" 
-    let range = if result.start_index!=result.end_index: "{result.start_index}:{result.end_index}" else: fmt"{result.start_index}:..."
-    raise newException(ParseError, fmt"failed to parse with error: Expected{expected} Description: `{result.description}` {got} @ {range}")
+    let range = if result.start_index!=result.end_index: fmt"{result.start_index}:{result.end_index}" else: fmt"{result.start_index}:..."
+    let description = if result.description.len>0: fmt" ({result.description}) " else: " "
+    raise newException(ParseError, fmt"Failed to parse. Expected {expected}{description}{got} @ {range}")
 
-proc parse_partial*[T, R](parser: Parser[T, R], stream: Stream[T]): Result[R] =
-  var state = State[T](stream: stream)
-  parse_partial(parser, state)
-
-proc eos_parser[T, R](state: var State[T]): Result[R] =
-  if state.index >= state.stream.len:
-    return success[R](state.index, state.index, @[], "`end of stream`")
-  failure[R](state.index, state.index, "`end of stream`")
+proc eos_parser[T, R](stream: Stream[T]; index: var int): Result[R] =
+  if index >= stream.len:
+    return success[R](index, index, @[], description = "`end of stream`")
+  failure[R](index, index, @[], description = "`end of stream`")
 
 proc eos[T, R]: auto =
   ## parser spots the end of a stream
   Parser[T, R](fn: eos_parser[T, R],
     description: "`end of stream`")
 
-proc parse*[T, R](parser: Parser[T, R], stream: Stream[T]): Stream[R] =
+proc parse*[T, R](parser: Parser[T, R]; stream: Stream[T]; index: var int): seq[R] =
   ## run a parser on a stream
-  result = parser.skip(eos[T, R]()).parse_partial(stream).value
+  return parser.skip(eos[T, R]()).parse_partial(stream, index).value
 
-proc parse*[char, R](parser: Parser[char, R], stream: string): Stream[R] =
-  ## run a parser on a stream that is a string
-  result = parser.skip(eos[char, R]()).parse_partial(stream.toSeq).value
+proc parse*[T, R](parser: Parser[T, R]; stream: Stream[T]; index: int = 0): seq[R] =
+  ## run a parser on a stream
+  var index = index
+  return parser.skip(eos[T, R]()).parse_partial(stream, index).value
 
 proc skip*[T, R](parser, other: Parser[T, R]): Parser[T, R] =
   ## parses `parser` then `other` but ignores `other` result
-  proc skip_parser(state: var State[T]): Result[R] =
+  proc skip_parser(stream: Stream[T]; index: var int): Result[R] =
     # dump state
     # dump parser
     # dump other
-    let first = parser.fn(state)
+    let first = parser.fn(stream, index)
     # dump first
     if not first:
       return first
-    let to_skip = other.fn(state)
+    let to_skip = other.fn(stream, index)
     # dump to_skip
     if not to_skip:
       return to_skip
     first
   Parser[T, R](fn: skip_parser, description: fmt"{parser.description} skip {other.description}")
+
+proc `<<`*[T,R](parser, other: Parser[T, R]): auto = skip(parser, other)
 
 proc then*[T, R](parser, other: Parser[T, R]): Parser[T, R] =
   ##[
@@ -147,31 +154,38 @@ proc then*[T, R](parser, other: Parser[T, R]): Parser[T, R] =
     # @['c', 'p']
   ]##
   let description = fmt"{parser.description} then {other.description}"
-  proc then_parser(state: var State[T]): Result[R] =
-    result = parser.fn(state)
+  proc then_parser(stream: Stream[T]; index: var int): Result[R] =
+    result = parser.fn(stream, index)
     if not result:
       return
-    let other_result = other.fn(state)
+    let other_result = other.fn(stream, index)
     if not other_result:
       return other_result
     result = success(result.start_index, other_result.end_index, concat(
         result.value, other_result.value), description)
   Parser[T, R](fn: then_parser, description: description)
 
-proc test_proc[T](test_proc_var: proc(x: T): bool, description: string, expected: Option[T]): Parser[T, T] =
+proc `>>`*[T,R](parser, other: Parser[T, R]): auto = then(parser, other)
+
+proc then*[T,R](a, b: Parser[T, R]; rest: varargs[Parser[T, R]]): auto =
+  result = a >> b
+  for p in rest:
+    result = result >> p
+
+proc test_proc[T](test_proc_var: proc(x: T): bool; description: string; expected: Option[T]): Parser[T, T] =
   ## tests a procedure against the next value in the stream
-  let exp = if expected.isSome: @[expected.get] else: @[]
-  proc test_proc_parser(state: var State[T]): Result[T] =
-    if state.index < state.stream.len:
-      if test_proc_var(state.stream[state.index]):
-        result = success[T](state.index, state.index+1, @[state.stream[
-            state.index]], description)
-        state.index+=1
+  let exp = (if expected.isSome: @[expected.get] else: @[])
+  proc test_proc_parser(stream: Stream[T]; index: var int): Result[T] =
+    if index < stream.len:
+      if test_proc_var(stream[index]):
+        result = success[T](index, index+1, @[stream[
+            index]], description)
+        index+=1
         return
-    failure[T](state.index, state.index+1, exp, description)
+    failure[T](index, index+1, exp, description)
   Parser[T, T](fn: test_proc_parser, description: description)
 
-proc test_proc*[T](test_proc_var: proc(x: T): bool,
+proc test_proc*[T](test_proc_var: proc(x: T): bool;
     description: string): Parser[T, T] =
   ##[
   tests a procedure against the next value in the stream
@@ -185,7 +199,7 @@ proc test_proc*[T](test_proc_var: proc(x: T): bool,
   ]##
   test_proc[T](test_proc_var, description, none(T))
 
-proc test_proc*[T](test_proc_var: proc(x: T): bool, description: string,
+proc test_proc*[T](test_proc_var: proc(x: T): bool; description: string; 
     expected: T): Parser[T, T] =
   ##[
   tests a procedure against the next value in the stream
@@ -199,39 +213,7 @@ proc test_proc*[T](test_proc_var: proc(x: T): bool, description: string,
   ]##
   test_proc[T](test_proc_var, description, some(expected))
 
-proc test_seq*[T](test_seq: Stream[T], description: string): Parser[T, T] =
-  ##[
-    tests if the `test_seq` is the next sequence of the state's stream
-
-  .. code-block:: nim
-    let t = test_seq("abc".to_seq, "alphabet")
-    echo t
-    echo t.parse("abc")
-    # <Parser: alphabet>
-    # @['a', 'b', 'c']
-  ]##
-  proc test_seq_parser(state: var State[T]): Result[T] =
-    var i = 1
-    let start_index = state.index
-    var values: Stream[T] = @[]
-    if state.index < state.stream.len and test_seq[0] == state.stream[state.index]:
-      values.add state.stream[state.index]
-      state.index+=1
-    while i < test_seq.len:
-      if state.index < state.stream.len:
-        if test_seq[i] == state.stream[state.index]:
-          values.add state.stream[state.index]
-          state.index+=1
-      else:
-        result = failure[T](start_index, state.index, test_seq, description)
-        state.index = start_index
-        return
-      i+=1
-    return success[T](start_index, state.index, values, description)
-
-  Parser[T, T](fn: test_seq_parser, description: description)
-
-proc test_item*[T](test: T, description: string): auto =
+proc test_item*[T](test: T; description: string): auto =
   ## test if a single `test` item is next in the stream
   test_proc(proc(x: T): auto = test == x, description, test)
 
@@ -239,11 +221,18 @@ proc test_char*(test: char): Parser[char, char] =
   ## test if a char is next in the stream (usually a string for char test)
   test_item(test, fmt"`char {test}`")
 
-proc str*[T](parser: Parser[T, string]): Parser[T, string] =
-  map[T, string, string](parser, proc(x: seq[string]): seq[string] = @[x.map_it(it).join])
+converter to_parser*(c: char): auto = test_char(c)
 
-proc str*[T](parser: Parser[T, char]): Parser[T, string] =
-  map[T, char, string](parser, proc(x: seq[char]): seq[string] = @[x.map_it($it).join])
+
+
+# converter str*[T, R](parser: Parser[T, R]): Parser[T, R] =  
+#   map[T, R, R](parser, proc(x: seq[R]): seq[R] = @[x.map_it(it).join])  
+
+# converter str*(parser: Parser[char, string]): Parser[char, string] =  
+#   map[char, string, string](parser, proc(x: seq[string]): seq[string] = @[x.map_it(it).join])  
+
+# converter str*[T](parser: Parser[T, char]): Parser[T, string] =  
+#   map[T, char, string](parser, proc(x: seq[char]): seq[string] = @[x.map_it($it).join])
 
 proc anything*[T] = test_proc(proc(_: [T]): bool = true, "anything")
 proc nothing*[T] = test_proc(proc(_: [T]): bool = false, "nothing")
@@ -259,9 +248,22 @@ proc test_string*(test: string): auto =
     # <Parser: string abc>
     # @["abc"]
   ]##
-  test_seq(test.to_seq, fmt"string {test}").str
+  
+  let description = &"string \"{test}\""
+  proc test_string_parser(stream: Stream[char]; index: var int): Result[string] =
+    if index+test.len<=stream.len:
+      if stream[index..<index+test.len]==test:
+        result = success[string](index, index+test.len, test, description)
+        index+=test.len
+        return
+    
+    failure[string](index, index+test.len, test, description)
+  Parser[char, string](fn: test_string_parser, description: description)
 
-proc test_regex*(pattern: Regex, description: string): Parser[char, string] =
+converter to_string_parser*(c: char): auto = test_string($c)
+converter to_parser*(s: string): auto = test_string(s)
+
+proc test_regex*(pattern: Regex, description: string = ""): Parser[char, string] =
   ##[
   tests if a regex pattern is next in a stream
 
@@ -272,36 +274,17 @@ proc test_regex*(pattern: Regex, description: string): Parser[char, string] =
     # <Parser: regex identifier>
     # @["_hello1984"]
   ]##
-  proc regex_parser(state: var State[char]): Result[string] =
-    let match = cast[string](state.stream[state.index..<state.stream.len]).findBounds(pattern)
+  proc regex_parser(stream: Stream[char]; index: var int): Result[string] =
+    let match = cast[string](stream[index..<stream.len]).findBounds(pattern)
     if (match[0] == 0) and (match[1] > -1):
-      let start_index = state.index
-      state.index = match[1]+1+start_index
-      result = success(start_index, state.index, @[state.stream[start_index..<state.index].map_it($it).join], description)
+      let start_index = index
+      index = match[1]+1+start_index
+      result = success(start_index, index, @[stream[start_index..<index].map_it($it).join], description)
     else:
-      result = failure[string](state.index, state.index, description)
-  Parser[char, string](fn: regex_parser,
-      description: fmt"`regex {description}`")
+      result = failure[string](index, index, description)
+  Parser[char, string](fn: regex_parser, description: fmt"`regex {description}`")
 
-proc test_regex_string*(pattern: Regex, description: string): Parser[string, string] =
-  test_proc[string](proc(x: string): bool = x.match(pattern), description)
-
-# proc test_regex*[T](pattern: Regex, description: string): auto =
-#   ##[
-#   tests if a regex pattern is next in a stream
-
-#   .. code-block:: nim
-#     let r = test_regex(re"[a-zA-Z_][a-zA-Z0-9_]*", "identifier")
-#     echo r
-#     echo r.parse("_hello1984")
-#     # <Parser: regex identifier>
-#     # @["_hello1984"]
-#   ]##
-#   when T is string:
-#     return test_regex_string(pattern, description)
-#   else:
-#     return test_regex_char(pattern, description)
-
+converter to_parser*(r: Regex): auto = test_regex(r)
 
 proc times*[T, R](parser: Parser[T, R], min: int, max: int = -1): Parser[T, R] =
   ##[
@@ -314,8 +297,9 @@ proc times*[T, R](parser: Parser[T, R], min: int, max: int = -1): Parser[T, R] =
     # <Parser: not char c 3 times>
     # @['a', 'b', 'd']
   ]##
-
+  
   let max_count = if max == -1: min else: max
+  if max_count==1 and min==1: return parser
   let description = if max == -1:
     fmt"{parser.description} {min} times"
     elif min == 0 and max == int.high: fmt"{parser.description} many times"
@@ -323,55 +307,26 @@ proc times*[T, R](parser: Parser[T, R], min: int, max: int = -1): Parser[T, R] =
     elif min == 0: fmt"{parser.description} at most {max_count} times"
     elif max == int.high: fmt"{parser.description} at least {min} times"
     else: fmt"{parser.description} from {min} to {max_count} times"
-  proc times_parser(state: var State[T]): Result[R] =
+  proc times_parser(stream: Stream[char]; index: var int): Result[R] =
     var values: seq[R] = @[]
     var times = 0
-    let start_index = state.index
+    let start_index = index
     while times < max_count:
-      result = parser.fn(state)
+      result = parser.fn(stream, index)
       if result:
         values.add(result.value)
         times += 1
       elif times < min:
-        result = failure[R](start_index, state.index, description)
-        state.index = start_index
+        result = failure[R](start_index, index, description)
+        index = start_index
         return
       else:
         break
-    return success(start_index, state.index, values, description)
+    return success(start_index, index, values, description)
   return Parser[T, R](fn: times_parser, description: description)
 
-proc until*[T, R](self, parser: Parser[T, R]): Parser[T, R] =
-  ##[
-  looks for the current parser `self` until `parser` matches
-
-  .. code-block:: nim
-    let p = (test_char('c')).until(test_char('p'))
-    echo p
-    echo p.parse("ccccp")
-    # <Parser: char c until not char c>
-    # @['c', 'c', 'c', 'c', 'p']
-  ]##
-  let description = fmt"{self.description} until {parser.description}"
-  proc until_parser(state: var State[T]): Result[R] =
-    var values: seq[R] = @[]
-    let start_index = state.index
-    var last_index = start_index
-    var until = parser.fn(state)
-    while not until:
-      state.index = last_index
-      result = self.fn(state)
-      if result:
-        values.add(result.value)
-        state.index = result.end_index
-      else:
-        result = failure[R](start_index, state.index, description)
-        state.index = last_index
-        return
-      last_index = state.index
-      until = parser.fn(state)
-    return success(start_index, state.index, concat(values, until.value), description)
-  return Parser[T, R](fn: until_parser, description: description)
+proc `*`*[T, R](parser: Parser[T, R], n: int): Parser[T, R] = parser.times(n)
+proc `[]`*[T, R](parser: Parser[T, R], n: Slice[int]): Parser[T, R] = parser.times(n.a, n.b)
 
 proc many*(parser: Parser): Parser =
   ##[
@@ -410,17 +365,18 @@ proc `or`*[T, R](parser, other: Parser[T, R]): Parser[T, R] =
     # @['p']
   ]##
   let description = fmt"{parser.description} or {other.description}"
-  proc or_parser(state: var State[T]): Result[R] =
-    let start_index = state.index
-    result = parser.fn(state)
+  proc or_parser(stream: Stream[char]; index: var int): Result[R] =
+    let start_index = index
+    result = parser.fn(stream, index)
     if result:
       return
     let fail_end = result.end_index
-    result = other.fn(state)
+    result = other.fn(stream, index)
     if result:
       return
     result = failure[R](start_index, max(fail_end, result.end_index), description)
   Parser[T, R](fn: or_parser, description: description)
+
 
 proc `and`*[T, R](parser, other: Parser[T, R]): Parser[T, R] =
   ##[
@@ -436,15 +392,15 @@ proc `and`*[T, R](parser, other: Parser[T, R]): Parser[T, R] =
     # Error: unhandled exception: failed to parse with error: Expected `greater than 2` got @['1'] @ 0:1 [ParseError]
   ]##
   let description = fmt"{parser.description} and {other.description}"
-  proc and_parser(state: var State[T]): Result[R] =
-    let start_index = state.index
-    result = parser.fn(state)
+  proc and_parser(stream: Stream[char]; index: var int): Result[R] =
+    let start_index = index
+    result = parser.fn(stream, index)
     if not result:
       return
-    state.index = start_index
+    index = start_index
     let first_value = result.value
     let end_index = result.end_index
-    result = other.fn(state)
+    result = other.fn(stream, index)
     if not result:
       return
     result = success[R](start_index, max(end_index, result.end_index),
@@ -463,60 +419,43 @@ proc `not`*[T, R](parser: Parser[T, R]): Parser[T, R] =
     # @['p']
   ]##
   let description = fmt"not {parser.description}"
-  proc not_parser(state: var State[T]): Result[R] =
-    result = parser.fn(state)
-    if result.kind == ResultType.Match:
-      result.kind = ResultType.Failure
-      swap(result.value, result.expected)
+  proc not_parser(stream: Stream[T]; index: var int): Result[R] =
+    var res = parser.fn(stream, index)
+    let description = fmt"not {res.description}"
+    if res.kind == ResultType.Match:
+      result = failure(res.start_index, res.end_index, res.value, description)
     else:
-      result.kind = ResultType.Match
-      result.value = state.stream[result.start_index..<result.end_index]
-      result.expected = @[]
-    result.description = fmt"not {result.description}"
-    state.index = result.end_index
+      result = success(res.start_index, res.end_index, stream[res.start_index..<res.end_index], description)
+    index = res.end_index
   Parser[T, R](fn: not_parser, description: description)
 
-proc pad*(parser: Parser[char, string]): Parser[char, string] =
+template step*(input: untyped): untyped =
   ##[
-  optional whitespace
-
-  .. code-block:: nim
-    
-    echo test_string("hello").pad.parse("hello    ")
-    # @["hello"]
+  for use in `generate`
+  creates a parse step on a stream and index within a `generate` parser
   ]##
-  parser.skip(test_regex(re"\s+", "padding").optional)
+  (`input`).parse_partial(stream, index)
 
-proc pad*(parser: Parser[char, char]): Parser[char, char] =
+template generate*[T, R](desc: string; body: untyped): untyped =
   ##[
-  optional whitespace
+    creates a parser based on a codeblock of `Parser`s and `Result` manipulation
+    .. code-block:: nim
+      let lparen = "("
+      let rparen = ")"
 
-  .. code-block:: nim
-    
-    echo test_char('c').pad.parse("c    ")
-    # @['c']
+
+      let t = generate[char, string] "unwrap number":
+        discard step lparen
+        result = step re"[0-9]+"
+        discard step rparen
+
+      echo t
+      echo t.parse("(7)")
+      # <Parser: unwrap number>
+      # @["7"]
   ]##
-  parser.skip(test_regex(re"\s+", "padding").optional.map(' '))
-
-proc space*(parser: Parser[char, string]): Parser[char, string] =
-  ##[
-  optional whitespace
-
-  .. code-block:: nim
+  block:
+    let temp = proc(stream{.inject.}: Stream[T], index{.inject.}: var int): Result[R] =
+      `body`
     
-    let p = test_string("9").space
-    echo p.parse("9")
-    # @["9"]
-  ]##
-  parser.skip(test_char(' ').map(" "))
-
-proc space*(parser: Parser[char, char]): Parser[char, char] =
-  ##[
-  optional whitespace
-
-  .. code-block:: nim
-    
-    echo test_char('c').space.parse("c ")
-    # @['c']
-  ]##
-  parser.skip(test_char(' '))
+    Parser[T, R](fn: temp, description: desc)
