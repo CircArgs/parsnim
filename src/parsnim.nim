@@ -52,23 +52,23 @@ proc describe*(parser: var Parser, desc: string): Parser =
   parser.description = desc
   parser
 
-proc map*[T, R, NR](parser: Parser[T, R], map_fn: proc(x: seq[R]): seq[NR]): Parser[T, NR] =
+proc mapfns*[T, R, NR](parser: Parser[T, R], map_fn: proc(x: seq[R]): seq[NR]): Parser[T, NR] =
   ## takes a parser that goes from Stream[T]->Stream[R] and transforms it to Stream[T]->Stream[NR]
   proc map_parser(stream: Stream[T]; index: var int): Result[NR] =
     let old = parser.fn(stream, index)
     if old.kind == Match:
-      success(old.start_index, old.end_index, old.value, old.description)
+      success(old.start_index, old.end_index, map_fn(old.value), old.description)
     else:
-      failure(old.start_index, old.end_index, old.expected, old.description)
+      failure(old.start_index, old.end_index, map_fn(old.expected), old.description)
   Parser[T, NR](fn: map_parser, description: parser.description)
 
 proc map*[T, R, NR](parser: Parser[T, R], map_fn: proc(x: R): NR): Parser[T, NR] =
   ## takes a parser that goes from Stream[T]->Stream[R] and transforms it to Stream[T]->Stream[NR]
-  map[T, R, NR](parser, proc(s: seq[R]): seq[NR] = s.map_it(map_fn(it)))
+  mapfns[T, R, NR](parser, proc(s: seq[R]): seq[NR] = s.map_it(map_fn(it)))
 
-proc map*[T, R, NR](parser: Parser[T, R], item: NR): Parser[T, NR] =
+proc to*[T, R, NR](parser: Parser[T, R], item: NR): Parser[T, NR] =
   ## takes a parser that goes from Stream[T]->Stream[R] and transforms it to Stream[T]->Stream[NR] of just `item`
-  map[T, R, NR](parser, proc(s: seq[R]): seq[NR] = s.map(proc(x: auto): auto = item))
+  mapfns[T, R, NR](parser, proc(s: seq[R]): seq[NR] = s.map(proc(x: auto): auto = item))
 
 proc `$`*(parser: Parser): string =
   fmt"<Parser: {parser.description}>"
@@ -82,7 +82,8 @@ proc parse_partial*[T, R](parser: Parser[T, R]; stream: Stream[T]; index: var in
       if result.expected[0] is string:
         expected= &"\"{expected}\""
     elif result.expected is seq[string]:
-      expected = &"\"{result.expected.join}\""
+      let expected_inner = result.expected.map_it($it).join
+      expected = &"\"{expected_inner}\""
     else:
       expected = ($result.expected)[1..^1]
 
@@ -95,7 +96,8 @@ proc parse_partial*[T, R](parser: Parser[T, R]; stream: Stream[T]; index: var in
     if show_seq.len == 1:
       show = $show_seq[0]
     elif result.expected is seq[string]:
-      show = &"\"{show_seq.join}\""
+      let inner_show = show_seq.map_it($it).join
+      show = &"\"{inner_show}\""
     else:
       show = ($show_seq)[1..^1]
 
@@ -167,8 +169,8 @@ proc then*[T, R](parser, other: Parser[T, R]): Parser[T, R] =
 
 proc `>>`*[T,R](parser, other: Parser[T, R]): auto = then(parser, other)
 
-proc then*[T,R](a, b: Parser[T, R]; rest: varargs[Parser[T, R]]): auto =
-  result = a >> b
+proc then*[T,R](a, b, c: Parser[T, R]; rest: varargs[Parser[T, R]]): auto =
+  result = a >> b >> c
   for p in rest:
     result = result >> p
 
@@ -328,9 +330,42 @@ proc times*[T, R](parser: Parser[T, R], min: int, max: int = -1): Parser[T, R] =
 proc `*`*[T, R](parser: Parser[T, R], n: int): Parser[T, R] = parser.times(n)
 proc `[]`*[T, R](parser: Parser[T, R], n: Slice[int]): Parser[T, R] = parser.times(n.a, n.b)
 
+proc until*[T, R](self, parser: Parser[T, R]): Parser[T, R] =
+  ##[
+  looks for the current parser `self` until `parser` matches
+
+  .. code-block:: nim
+    let p = (test_char('c')).until(test_char('p'))
+    echo p
+    echo p.parse("ccccp")
+    # <Parser: char c until not char c>
+    # @['c', 'c', 'c', 'c', 'p']
+  ]##
+  let description = fmt"{self.description} until {parser.description}"
+  proc until_parser(stream: Stream[char]; index: var int): Result[R] =
+    var values: seq[R] = @[]
+    let start_index = index
+    var last_index = start_index
+    var until = parser.fn(stream, index)
+    while not until:
+      index = last_index
+      result = self.fn(stream, index)
+      if result:
+        values.add(result.value)
+        index = result.end_index
+      else:
+        result = failure[R](start_index, index, description)
+        index = last_index
+        return
+      last_index = index
+      until = parser.fn(stream, index)
+    return success(start_index, index, concat(values, until.value), description)
+  return Parser[T, R](fn: until_parser, description: description)
+
 proc many*(parser: Parser): Parser =
   ##[
-  finds `parser` until it doesn't
+  like regex * (see `*(Parser)`)
+  e.g. finds `parser` until it doesn't
 
   .. code-block:: nim
     let t = (test_char('c')).many().then(test_char('p'))
@@ -421,13 +456,26 @@ proc `not`*[T, R](parser: Parser[T, R]): Parser[T, R] =
   let description = fmt"not {parser.description}"
   proc not_parser(stream: Stream[T]; index: var int): Result[R] =
     var res = parser.fn(stream, index)
-    let description = fmt"not {res.description}"
     if res.kind == ResultType.Match:
       result = failure(res.start_index, res.end_index, res.value, description)
     else:
       result = success(res.start_index, res.end_index, stream[res.start_index..<res.end_index], description)
     index = res.end_index
   Parser[T, R](fn: not_parser, description: description)
+
+proc ignore*[T, R](parser: Parser[T, R]): Parser[T, R] =
+  ##[
+  returns a parser whose `Result` is ignored
+  ]##
+  let description = fmt"ignore {parser.description}"
+  proc ignore_parser(stream: Stream[T]; index: var int): Result[R] =
+    var res = parser.fn(stream, index)
+    if res.kind == ResultType.Match:
+      result = failure(res.start_index, res.end_index, res.value, description)
+    else:
+      result = success(res.start_index, res.end_index, @[], description)
+    index = res.end_index
+  Parser[T, R](fn: ignore_parser, description: description)
 
 template step*(input: untyped): untyped =
   ##[
@@ -459,3 +507,19 @@ template generate*[T, R](desc: string; body: untyped): untyped =
       `body`
     
     Parser[T, R](fn: temp, description: desc)
+
+
+# aliases
+let pad* = re"\s+"
+let space* = " "
+let digit* = re"0-9"
+let identifier* = re"[a-zA-Z_][a-zA-Z0-9_]*"
+let lparen* = "("
+let rparen* = ")"
+let lbrace* = "{"
+let rbrace* = "}"
+let lbrack* = "["
+let rbrack* = "]"
+let colon* = ":"
+let comma* = ","
+
